@@ -1,0 +1,7 @@
+# Neovim runtime junk
+.lazy-lock.json
+.plugin/
+.session/
+shada/
+*.log
+
