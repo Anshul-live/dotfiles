@@ -9,7 +9,7 @@ require("lazy").setup({
   require("plugins.telescope"),
   require("plugins.statusline"),
   require("plugins.treesitter"),
+  require("plugins.autopair"),
   require("plugins.aerial")
-  -- add more here
 })
 

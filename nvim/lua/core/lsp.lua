@@ -8,13 +8,24 @@ local servers = {
   rust_analyzer = {},
 }
 
-local on_attach = function(_, bufnr)
-  local opts = { buffer = bufnr }
-  vim.keymap.set("n", "gd", vim.lsp.buf.definition, opts)
-  vim.keymap.set("n", "K", vim.lsp.buf.hover, opts)
-  vim.keymap.set("n", "<leader>rn", vim.lsp.buf.rename, opts)
-  vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, opts)
-end
+vim.api.nvim_create_autocmd("LspAttach", {
+  callback = function(ev)
+    local opts = { buffer = ev.buf }
+
+    -- Core navigation
+    vim.keymap.set("n", "gd", vim.lsp.buf.definition,
+      vim.tbl_extend("force", opts, { desc = "Go to definition" }))
+
+    vim.keymap.set("n", "gD", vim.lsp.buf.declaration,
+      vim.tbl_extend("force", opts, { desc = "Go to declaration" }))
+
+    vim.keymap.set("n", "gi", vim.lsp.buf.implementation,
+      vim.tbl_extend("force", opts, { desc = "Go to implementation" }))
+
+    vim.keymap.set("n", "K", vim.lsp.buf.hover,
+      vim.tbl_extend("force", opts, { desc = "Hover documentation" }))
+  end,
+})
 
 for name, config in pairs(servers) do
   config.on_attach = on_attach

@@ -26,14 +26,23 @@ telescope.setup({
 -- Keymaps (navigation)
 -- =========================
 vim.keymap.set("n", "<leader>ff", builtin.find_files, { desc = "Find files" })
-vim.keymap.set("n", "<leader>fg", builtin.live_grep, { desc = "Live grep" })
-vim.keymap.set("n", "<leader>fb", builtin.buffers, { desc = "Buffers" })
-vim.keymap.set("n", "<leader>fs", builtin.lsp_document_symbols, { desc = "Document symbols" })
-vim.keymap.set("n", "<leader>fS", builtin.lsp_workspace_symbols, { desc = "Workspace symbols" })
+vim.keymap.set("n", "<leader>/", builtin.live_grep, { desc = "Live grep" })
+vim.keymap.set("n", "<leader>bb", builtin.buffers, { desc = "Buffers" })
+vim.keymap.set("n", "<leader>ss", builtin.lsp_document_symbols, { desc = "Document symbols" })
+vim.keymap.set("n", "<leader>sw", builtin.lsp_workspace_symbols, { desc = "Workspace symbols" })
 
-vim.keymap.set("n", "<leader>fF", function()
+vim.keymap.set("n", "<leader>fg", function()
   require("telescope.builtin").git_files()
 end, { desc = "Find git files" })
+
+vim.api.nvim_create_autocmd("LspAttach", {
+  callback = function(ev)
+    local opts = { buffer = ev.buf, desc = "Find references" }
+    vim.keymap.set("n", "gr", function()
+      require("telescope.builtin").lsp_references()
+    end, opts)
+  end,
+})
 
 -- Jump list navigation
 vim.keymap.set("n", "<C-o>", "<C-o>", { silent = true }) -- back

@@ -42,3 +42,4 @@ vim.diagnostic.config({
   },
 })
 
+vim.opt.mouse = ""
