@@ -10,6 +10,8 @@ require("lazy").setup({
   require("plugins.statusline"),
   require("plugins.treesitter"),
   require("plugins.autopair"),
+  require("plugins.lazygit"),
+  require("plugins.gitsigns"),
   require("plugins.aerial")
 })
 

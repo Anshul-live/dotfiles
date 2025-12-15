@@ -3,7 +3,6 @@ require("aerial").setup({
     max_width = { 40 },
     min_width = 30,
   },
-   close_automatic_events = { "switch_buffer", "unfocus", "jump" },
   backends = { "lsp" },
   show_guides = true,
   filter_kind = false, -- show all symbols

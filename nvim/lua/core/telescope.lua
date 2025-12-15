@@ -44,6 +44,20 @@ vim.api.nvim_create_autocmd("LspAttach", {
   end,
 })
 
+--git navigation
+vim.keymap.set("n", "<leader>gs",
+  require("telescope.builtin").git_status,
+  { desc = "Git status" })
+
+vim.keymap.set("n", "<leader>gc",
+  require("telescope.builtin").git_commits,
+  { desc = "Git commits" })
+
+vim.keymap.set("n", "<leader>gb",
+  require("telescope.builtin").git_branches,
+  { desc = "Git branches" })
+
+
 -- Jump list navigation
 vim.keymap.set("n", "<C-o>", "<C-o>", { silent = true }) -- back
 vim.keymap.set("n", "<C-i>", "<C-i>", { silent = true }) -- forward
