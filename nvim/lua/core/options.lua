@@ -43,4 +43,6 @@ vim.diagnostic.config({
   },
 })
 
+--improvement
 vim.opt.mouse = ""
+vim.opt.clipboard = "unnamedplus"

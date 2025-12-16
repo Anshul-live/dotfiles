@@ -26,8 +26,8 @@ vim.keymap.set("n", "<leader><leader>", "<cmd>b#<CR>", {
 -- forcing for learning
 vim.keymap.set({ "n", "v" }, "h", "<nop>")
 vim.keymap.set({ "n", "v" }, "l", "<nop>")
-vim.keymap.set("n", "v", "<nop>")
-vim.keymap.set("n", "V", "<nop>")
+-- vim.keymap.set("n", "v", "<nop>")
+-- vim.keymap.set("n", "V", "<nop>")
 
 vim.keymap.set({ "n", "i", "v" }, "<Up>", "<nop>")
 vim.keymap.set({ "n", "i", "v" }, "<Down>", "<nop>")
