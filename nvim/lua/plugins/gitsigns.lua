@@ -1,8 +1,8 @@
 return {
   "lewis6991/gitsigns.nvim",
-  event = { "BufReadPre", "BufNewFile" },
+  lazy = false,
   config = function()
-    require("core.gitsigns")
+    require('core.gitsigns')
   end,
 }
 

@@ -1,5 +1,5 @@
 require("nvim-treesitter").setup({
-  ensure_installed = {
+ensure_installed = {
     "c",
     "cpp",
     "lua",

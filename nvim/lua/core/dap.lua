@@ -19,7 +19,11 @@ dap.configurations.cpp = {
     type = "codelldb",
     request = "launch",
     program = function()
-      return vim.fn.input("Path to executable: ", vim.fn.getcwd() .. "/", "file")
+      return vim.fn.input(
+        "Path to executable: ",
+        vim.fn.getcwd() .. "/",
+        "file"
+      )
     end,
     cwd = "${workspaceFolder}",
     stopOnEntry = false,
@@ -32,19 +36,27 @@ dap.configurations.c = dap.configurations.cpp
 -- =========================
 -- Keymaps
 -- =========================
-vim.keymap.set("n", "<F5>", dap.continue)
-vim.keymap.set("n", "<F10>", dap.step_over)
-vim.keymap.set("n", "<F11>", dap.step_into)
-vim.keymap.set("n", "<F12>", dap.step_out)
-vim.keymap.set("n", "<leader>b", dap.toggle_breakpoint)
+vim.keymap.set("n", "<F5>", dap.continue, { desc = "DAP continue" })
+vim.keymap.set("n", "<F10>", dap.step_over, { desc = "DAP step over" })
+vim.keymap.set("n", "<F11>", dap.step_into, { desc = "DAP step into" })
+vim.keymap.set("n", "<F12>", dap.step_out, { desc = "DAP step out" })
+
+vim.keymap.set("n", "<leader>b", dap.toggle_breakpoint,
+  { desc = "DAP toggle breakpoint" })
+
 vim.keymap.set("n", "<leader>B", function()
   dap.set_breakpoint(vim.fn.input("Breakpoint condition: "))
-end)
-vim.keymap.set("n", "<leader>dr", dap.repl.open)
-vim.keymap.set("n", "<leader>dl", dap.run_last)
+end, { desc = "DAP conditional breakpoint" })
 
---dap-ui setup
+vim.keymap.set("n", "<leader>dr", dap.repl.open,
+  { desc = "DAP REPL" })
 
+vim.keymap.set("n", "<leader>dl", dap.run_last,
+  { desc = "DAP run last" })
+
+-- =========================
+-- DAP UI
+-- =========================
 dapui.setup({
   layouts = {
     {
@@ -80,8 +92,6 @@ dap.listeners.before.event_exited["dapui_config"] = function()
   dapui.close()
 end
 
---dap-ui keymaps
-
-vim.keymap.set("n", "<leader>du", dapui.toggle)
-
+vim.keymap.set("n", "<leader>du", dapui.toggle,
+  { desc = "DAP UI toggle" })
 

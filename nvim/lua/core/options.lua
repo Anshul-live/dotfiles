@@ -14,6 +14,7 @@ vim.opt.smartindent = true
 
 -- UI
 vim.opt.termguicolors = true
+vim.opt.statuscolumn = ""
 vim.opt.signcolumn = "yes"
 
 -- responsiveness

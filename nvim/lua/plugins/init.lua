@@ -12,6 +12,8 @@ require("lazy").setup({
   require("plugins.autopair"),
   require("plugins.lazygit"),
   require("plugins.gitsigns"),
+  require("plugins.oil"),
+  -- require("plugins.incline"),
   require("plugins.aerial")
 })
 
