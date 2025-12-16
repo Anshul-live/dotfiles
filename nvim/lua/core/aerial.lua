@@ -1,4 +1,5 @@
 require("aerial").setup({
+  attach_mode = "global",
   layout = {
     max_width = { 40 },
     min_width = 30,
