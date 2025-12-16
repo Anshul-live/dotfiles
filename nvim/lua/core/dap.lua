@@ -36,25 +36,21 @@ dap.configurations.c = dap.configurations.cpp
 -- =========================
 -- Keymaps
 -- =========================
-vim.keymap.set("n", "<F5>", dap.continue, { desc = "DAP continue" })
-vim.keymap.set("n", "<F10>", dap.step_over, { desc = "DAP step over" })
-vim.keymap.set("n", "<F11>", dap.step_into, { desc = "DAP step into" })
-vim.keymap.set("n", "<F12>", dap.step_out, { desc = "DAP step out" })
+vim.keymap.set("n", "<leader>dc", dap.continue,        { desc = "DAP continue" })
+vim.keymap.set("n", "<leader>dn", dap.step_over,       { desc = "DAP next / step over" })
+vim.keymap.set("n", "<leader>di", dap.step_into,       { desc = "DAP step into" })
+vim.keymap.set("n", "<leader>do", dap.step_out,        { desc = "DAP step out" })
 
-vim.keymap.set("n", "<leader>b", dap.toggle_breakpoint,
-  { desc = "DAP toggle breakpoint" })
-
-vim.keymap.set("n", "<leader>B", function()
+-- breakpoints
+vim.keymap.set("n", "<leader>db", dap.toggle_breakpoint, { desc = "DAP toggle breakpoint" })
+vim.keymap.set("n", "<leader>dB", function()
   dap.set_breakpoint(vim.fn.input("Breakpoint condition: "))
 end, { desc = "DAP conditional breakpoint" })
 
-vim.keymap.set("n", "<leader>dr", dap.repl.open,
-  { desc = "DAP REPL" })
-
-vim.keymap.set("n", "<leader>dl", dap.run_last,
-  { desc = "DAP run last" })
-
--- =========================
+-- session / tools
+vim.keymap.set("n", "<leader>dr", dap.repl.open,       { desc = "DAP REPL" })
+vim.keymap.set("n", "<leader>dl", dap.run_last,        { desc = "DAP run last" })
+vim.keymap.set("n", "<leader>dq", dap.terminate,       { desc = "DAP terminate" })-- =========================
 -- DAP UI
 -- =========================
 dapui.setup({
