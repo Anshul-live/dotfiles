@@ -13,18 +13,21 @@ vim.keymap.set("n", "]d", vim.diagnostic.goto_next, { desc = "Next diagnostic" }
 
 vim.keymap.set("i", "jk", "<Esc>")
 vim.keymap.set("i", "jj", "<Esc>")
- 
+vim.keymap.set("n", "j", "gj")
+vim.keymap.set("n", "k", "gk")
+
+
 vim.keymap.set("n", "<leader><leader>", "<cmd>b#<CR>", {
   noremap = true,
   silent = true,
   desc = "Switch to alternate buffer",
 })
 
-
-
 -- forcing for learning
 vim.keymap.set({ "n", "v" }, "h", "<nop>")
 vim.keymap.set({ "n", "v" }, "l", "<nop>")
+vim.keymap.set("n", "v", "<nop>")
+vim.keymap.set("n", "V", "<nop>")
 
 vim.keymap.set({ "n", "i", "v" }, "<Up>", "<nop>")
 vim.keymap.set({ "n", "i", "v" }, "<Down>", "<nop>")
