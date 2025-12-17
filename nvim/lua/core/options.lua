@@ -16,6 +16,7 @@ vim.opt.smartindent = true
 vim.opt.termguicolors = true
 vim.opt.statuscolumn = ""
 vim.opt.signcolumn = "yes"
+vim.opt.guicursor = "a:block"
 
 -- responsiveness
 vim.opt.timeoutlen = 300
@@ -32,15 +33,15 @@ vim.g.maplocalleader = " "
 
 --diagnostic setup
 vim.diagnostic.config({
-  virtual_text = false,   -- disable inline text
-  signs = true,           -- keep gutter signs
-  underline = true,
-  update_in_insert = false,
-  severity_sort = true,
-  float = {
-    border = "rounded",
-    source = "always",
-  },
+	virtual_text = false, -- disable inline text
+	signs = true, -- keep gutter signs
+	underline = true,
+	update_in_insert = false,
+	severity_sort = true,
+	float = {
+		border = "rounded",
+		source = "always",
+	},
 })
 
 --improvement
