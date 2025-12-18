@@ -16,7 +16,9 @@ vim.opt.smartindent = true
 vim.opt.termguicolors = true
 vim.opt.statuscolumn = ""
 vim.opt.signcolumn = "yes"
-vim.opt.guicursor = "a:block"
+-- vim.opt.hlsearch = false
+vim.opt.incsearch = true
+vim.opt.scrolloff = 8
 
 -- responsiveness
 vim.opt.timeoutlen = 300
@@ -47,3 +49,5 @@ vim.diagnostic.config({
 --improvement
 vim.opt.mouse = ""
 vim.opt.clipboard = "unnamedplus"
+vim.opt.updatetime = 50
+-- vim.opt.scroll = 10
