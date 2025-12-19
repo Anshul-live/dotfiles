@@ -21,6 +21,7 @@ require("lazy").setup({
 	require("plugins.fidget"),
 	require("plugins.nvim-tmux"),
 	require("plugins.tabout"),
+	require("plugins.learn"),
 	-- require("plugins.incline"),
 	require("plugins.aerial"),
 })
