@@ -6,3 +6,8 @@ shada/
 *.log
 plugin/
 
+
+# macOS / editor leftovers
+.DS_Store
+*.bak-*
+*.pre-dotfiles

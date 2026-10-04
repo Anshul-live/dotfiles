@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+# Pick a project, jump into its tmux session.
+# First visit creates the session: window "code" runs nvim (which restores your
+# last session), window "shell" is a terminal in the same folder.
+#   tmux-sessionizer            fuzzy-pick a project
+#   tmux-sessionizer <dir>      go straight to <dir>
+set -euo pipefail
+
+roots=("$HOME/Desktop/code" "$HOME/Desktop/code/project")
+extra=("$HOME/dotfiles")
+
+if [[ $# -eq 1 ]]; then
+  selected=$1
+else
+  selected=$(
+    {
+      find "${roots[@]}" -mindepth 1 -maxdepth 1 -type d ! -name '.*' 2>/dev/null
+      printf '%s\n' "${extra[@]}"
+    } | sed "s|^$HOME|~|" | sort -u |
+      fzf --prompt='project  ' --layout=reverse --border=sharp --info=inline \
+        --color='bg:#141415,bg+:#252530,fg:#cdcdcd,fg+:#cdcdcd,hl:#6e94b2,hl+:#6e94b2,border:#606079,prompt:#6e94b2,pointer:#6e94b2,info:#606079' \
+      || true
+  )
+  selected=${selected/#\~/$HOME}
+fi
+[[ -z ${selected:-} ]] && exit 0
+
+name=$(basename "$selected" | tr '.:' '__')
+
+if ! tmux has-session -t "=$name" 2>/dev/null; then
+  tmux new-session -ds "$name" -c "$selected" -n code nvim
+  tmux new-window -dt "$name" -c "$selected" -n shell
+fi
+
+if [[ -n ${TMUX:-} ]]; then
+  tmux switch-client -t "=$name"
+else
+  tmux attach-session -t "=$name"
+fi
