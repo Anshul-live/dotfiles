@@ -105,15 +105,18 @@ side_by_side() {
 # a fresh Ghostty window for session $2 on workspace $1, focused if you're still there
 session_on() {
 	place_new $GHOSTTY "$1" "ghostty_session $2" || return
-	[ "$(aerospace list-workspaces --focused)" = "$1" ] &&
+	if [ "$(aerospace list-workspaces --focused)" = "$1" ]; then
 		aerospace focus --window-id "$(wins $GHOSTTY "$1" | head -1)"
+	fi
 }
 
 # ensure: only acts on an empty workspace; the lock stops a double press opening two windows
 ensure() {
 	[ -n "$(aerospace list-windows --workspace "$1" --format '%{window-id}')" ] && return 0
-	mkdir "${TMPDIR:-/tmp}/aerospace-ensure-$1" 2>/dev/null || return 0
-	trap 'rmdir "${TMPDIR:-/tmp}/aerospace-ensure-$1"' EXIT
+	local lock="${TMPDIR:-/tmp}/aerospace-ensure-$1"
+	mkdir "$lock" 2>/dev/null || return 0
+	# expanded now: at exit $1 is the script's own argument, not the workspace
+	trap "rmdir '$lock'" EXIT
 	case $1 in
 	B) place_new $QUTE B qute_window ;;
 	N) session_on N notes ;;
