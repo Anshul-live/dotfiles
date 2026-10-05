@@ -22,10 +22,22 @@
                 "type": "basic",
                 "from": {
                   "key_code": "caps_lock",
-                  "modifiers": { "optional": ["any"] }
+                  "modifiers": {
+                    "optional": [
+                      "any"
+                    ]
+                  }
                 },
-                "to": [{ "key_code": "left_control" }],
-                "to_if_alone": [{ "key_code": "escape" }],
+                "to": [
+                  {
+                    "key_code": "left_control"
+                  }
+                ],
+                "to_if_alone": [
+                  {
+                    "key_code": "escape"
+                  }
+                ],
                 "parameters": {
                   "basic.to_if_alone_timeout_milliseconds": 200
                 }
@@ -39,15 +51,147 @@
                 "type": "basic",
                 "from": {
                   "key_code": "right_command",
-                  "modifiers": { "optional": ["any"] }
+                  "modifiers": {
+                    "optional": [
+                      "any"
+                    ]
+                  }
                 },
                 "to": [
                   {
                     "key_code": "left_control",
-                    "modifiers": ["left_option", "left_command"]
+                    "modifiers": [
+                      "left_option",
+                      "left_command"
+                    ]
                   }
                 ],
-                "to_if_alone": [{ "key_code": "vk_none" }]
+                "to_if_alone": [
+                  {
+                    "key_code": "vk_none"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "description": "Right Option + h/j/k/l -> arrow keys in GUI apps (not Ghostty: Alt+hjkl is nvim/tmux there)",
+            "manipulators": [
+              {
+                "type": "basic",
+                "conditions": [
+                  {
+                    "type": "frontmost_application_unless",
+                    "bundle_identifiers": [
+                      "^com\\.mitchellh\\.ghostty$"
+                    ]
+                  }
+                ],
+                "from": {
+                  "key_code": "h",
+                  "modifiers": {
+                    "mandatory": [
+                      "right_option"
+                    ],
+                    "optional": [
+                      "shift",
+                      "left_command",
+                      "left_control"
+                    ]
+                  }
+                },
+                "to": [
+                  {
+                    "key_code": "left_arrow"
+                  }
+                ]
+              },
+              {
+                "type": "basic",
+                "conditions": [
+                  {
+                    "type": "frontmost_application_unless",
+                    "bundle_identifiers": [
+                      "^com\\.mitchellh\\.ghostty$"
+                    ]
+                  }
+                ],
+                "from": {
+                  "key_code": "j",
+                  "modifiers": {
+                    "mandatory": [
+                      "right_option"
+                    ],
+                    "optional": [
+                      "shift",
+                      "left_command",
+                      "left_control"
+                    ]
+                  }
+                },
+                "to": [
+                  {
+                    "key_code": "down_arrow"
+                  }
+                ]
+              },
+              {
+                "type": "basic",
+                "conditions": [
+                  {
+                    "type": "frontmost_application_unless",
+                    "bundle_identifiers": [
+                      "^com\\.mitchellh\\.ghostty$"
+                    ]
+                  }
+                ],
+                "from": {
+                  "key_code": "k",
+                  "modifiers": {
+                    "mandatory": [
+                      "right_option"
+                    ],
+                    "optional": [
+                      "shift",
+                      "left_command",
+                      "left_control"
+                    ]
+                  }
+                },
+                "to": [
+                  {
+                    "key_code": "up_arrow"
+                  }
+                ]
+              },
+              {
+                "type": "basic",
+                "conditions": [
+                  {
+                    "type": "frontmost_application_unless",
+                    "bundle_identifiers": [
+                      "^com\\.mitchellh\\.ghostty$"
+                    ]
+                  }
+                ],
+                "from": {
+                  "key_code": "l",
+                  "modifiers": {
+                    "mandatory": [
+                      "right_option"
+                    ],
+                    "optional": [
+                      "shift",
+                      "left_command",
+                      "left_control"
+                    ]
+                  }
+                },
+                "to": [
+                  {
+                    "key_code": "right_arrow"
+                  }
+                ]
               }
             ]
           }

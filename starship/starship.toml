@@ -43,7 +43,7 @@ format = '([$all_status$ahead_behind]($style) )'
 [character]
 success_symbol = "[❯](bold plus)"
 error_symbol = "[❯](bold error)"
-vicmd_symbol = "[❮](bold warning)"
+vimcmd_symbol = "[❮](bold warning)"
 
 # vague.nvim get_palette()
 [palettes.vague]

@@ -24,7 +24,23 @@ then `aerospace reload-config`. Accounts are set up once, see [Accounts](#accoun
 | **Caps Lock** tap / hold | Esc / Ctrl |
 | **Right Cmd** (hold) | **Hyper** = Ctrl+Alt+Cmd, used for everything below |
 
+| **Right Option** + `h j k l` | arrow keys in GUI apps (WhatsApp, Messages, draw.io, dialogs…); not in Ghostty |
+
 Config: `karabiner/karabiner.json`. Same on the MacBook and an external board.
+
+### Vim keys everywhere
+
+Every tool here moves with `h j k l` (plus `gg`/`G`, `/`, `Ctrl-d`/`Ctrl-u` where it makes sense):
+Neovim, the shell, tmux copy mode, qutebrowser, aerc, ikhal, newsboat, spotify_player, yazi,
+sioyek, mpv, btop, stig, lazygit, `less`/man, and anything using readline (qalc, sqlite3…).
+
+- **zsh** is in vi mode: `Esc` (tap Caps) for normal mode, then `hjkl w b 0 $ dd ciw u p`,
+  `k`/`j` history, `/` search history, `v` edit the line in nvim. The cursor is a block in
+  normal mode and a beam in insert; the prompt arrow turns `❮`. Insert mode keeps `Ctrl-a/e/w/u`.
+- **mpv**: `h`/`l` seek, `j`/`k` volume, `c` subtitles.
+- **GUI apps** without vim keys: Right Option + `hjkl` (above). Obsidian has vim mode on.
+  Do once by hand: Chrome → install the **Vimium** extension; Raycast → Settings → Advanced →
+  Navigation Bindings → **Vim**; Xcode → Editor → **Vim Mode**.
 
 ## Windows and workspaces (AeroSpace)
 
@@ -73,7 +89,7 @@ tmux prefix is **Ctrl-a**.
 A project can define its own windows with an executable `.tmux-layout` (gets session name and
 dir as arguments; see `bin/tmux-sessionizer`).
 
-Shell: `y` file manager (cd's to where you quit), `z <part>` jump to dir, `Ctrl-r` history,
+Shell (vi mode, see above): `y` file manager (cd's to where you quit), `z <part>` jump to dir, `Ctrl-r` history,
 `Ctrl-t` files, `ls`/`ll`/`lt` (eza), `cat` (bat), `gs gd gl gc gp` git.
 
 ## Neovim
@@ -170,10 +186,10 @@ More in `cards/README.md`.
 | **aerc** mail | Hyper+C, window 1 | `j/k`, `Enter` read, `m` compose, `Rr` reply / `rr` reply all, `a` archive, `d` trash, `*` star, `gi gs gd ga gt` Inbox/Sent/Drafts/All/Starred, `gf` pick folder, `gl` open link, `?` help |
 | **ikhal** calendar | Hyper+C, window 2 | `n` new event, `Enter` view, `?` help. Also `khal list today 7d` |
 | **newsboat** RSS | Hyper+C, window 3 | `j/k`, `l` open, `h` back, `o` open in browser, `v` play in mpv, `y` copy link, `n` next unread, `R` reload. Feeds: `newsboat/urls` |
-| **spotify_player** | Hyper+M | `?` help, `Space` play/pause, `n`/`p` next/prev, `g s` search Spotify, `/` filter list |
+| **spotify_player** | Hyper+M | `j/k` `gg/G` `Ctrl-d/u` move, `h` back, `Enter` open, `Space` play/pause, `n`/`p` next/prev, `g s` search Spotify, `/` filter, `?` help |
 | **yazi** files | `y` | `hjkl`, `Enter` open (nvim/sioyek/mpv/qutebrowser by type), `Space` select, `y`/`x`/`p` copy/cut/paste, `d` trash, `a` new, `r` rename, `.` hidden, `q` quit |
 | **sioyek** PDFs | `open file.pdf` / from yazi | `j/k`, `Ctrl-d/u` screen, `J/K` page, `w` fit width, `i` colours, `/` search, `t` contents, `m`/`` ` `` marks |
-| **mpv** video | `mpv <file or url>` | `Space` pause, `h/l` ±5s, `H/L` ±60s, `[ ]` speed, `f` fullscreen, `a` A-B loop, `q` quit (resumes where you stopped) |
+| **mpv** video | `mpv <file or url>` | `Space` pause, `h/l` ±5s, `H/L` ±60s, `j/k` volume, `c` subtitles, `[ ]` speed, `f` fullscreen, `a` A-B loop, `q` quit (resumes where you stopped) |
 | **btop** | `btop` | processes; vim keys |
 | **stig** torrents | `stig` | transmission daemon runs in the background (brew service), downloads to `~/Downloads/torrents` |
 | **qalc** | `qalc 5 GiB to MB` | calculator with units and currencies |

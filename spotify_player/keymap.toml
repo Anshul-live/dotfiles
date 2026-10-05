@@ -1,0 +1,16 @@
+# spotify_player keys on top of its defaults, which already have j/k, g g/G, / and ? (help).
+# Adds the rest of the vim motions. Linked with spotify_player/ -> ~/.config/spotify-player.
+
+# h goes back a page (l stays lyrics, Enter opens)
+[[keymaps]]
+command = "PreviousPage"
+key_sequence = "h"
+
+# half-page jumps
+[[keymaps]]
+command = "PageSelectNextOrScrollDown"
+key_sequence = "C-d"
+
+[[keymaps]]
+command = "PageSelectPreviousOrScrollUp"
+key_sequence = "C-u"

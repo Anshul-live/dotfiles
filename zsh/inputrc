@@ -1,0 +1,22 @@
+# Readline (qalc, sqlite3, lua, bash, ...): vi keys like the shell. Linked to ~/.inputrc by install.sh.
+set editing-mode vi
+set keyseq-timeout 10
+# the cursor shows the mode, same as zsh: block = normal, beam = insert
+set show-mode-in-prompt on
+set vi-cmd-mode-string "\1\e[2 q\2"
+set vi-ins-mode-string "\1\e[6 q\2"
+
+set completion-ignore-case on
+set show-all-if-ambiguous on
+
+set keymap vi-command
+# k / j: history entries starting with what's typed so far
+"k": history-search-backward
+"j": history-search-forward
+
+set keymap vi-insert
+"\C-a": beginning-of-line
+"\C-e": end-of-line
+"\C-w": backward-kill-word
+"\e[A": history-search-backward
+"\e[B": history-search-forward
