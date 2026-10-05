@@ -47,9 +47,12 @@ autocmd("FileType", {
 autocmd("FileType", {
   group = group,
   pattern = { "markdown", "gitcommit", "text" },
-  callback = function()
+  callback = function(ev)
     vim.opt_local.spell = true
     vim.opt_local.wrap = true
+    -- wrapped lines: j/k move by screen line (buffer-local, so it wins over hardtime's j/k)
+    vim.keymap.set("n", "j", "gj", { buffer = ev.buf })
+    vim.keymap.set("n", "k", "gk", { buffer = ev.buf })
   end,
 })
 

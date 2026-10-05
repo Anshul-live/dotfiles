@@ -10,8 +10,6 @@ map("n", "n", "nzzzv", { silent = true })
 map("n", "N", "Nzzzv", { silent = true })
 map("n", "<C-d>", "<C-d>zz", { silent = true })
 map("n", "<C-u>", "<C-u>zz", { silent = true })
-map("n", "j", "gj")
-map("n", "k", "gk")
 
 -- move selected lines
 map("v", "J", ":m '>+1<CR>gv=gv", { silent = true })
@@ -84,11 +82,7 @@ vim.api.nvim_create_user_command("DevCheck", function()
 end, { desc = "Check the dev setup" })
 map("n", "<leader>oc", "<cmd>DevCheck<CR>", { desc = "Check dev setup" })
 
--- forcing for learning
-map({ "n", "i", "v" }, "<Up>", "<nop>")
-map({ "n", "i", "v" }, "<Down>", "<nop>")
-map({ "n", "i", "v" }, "<Left>", "<nop>")
-map({ "n", "i", "v" }, "<Right>", "<nop>")
+-- forcing for learning (arrow keys are blocked by hardtime, see plugins/editor.lua)
 map({ "n", "v" }, "<LeftMouse>", "<nop>")
 map({ "n", "v" }, "<LeftDrag>", "<nop>")
 

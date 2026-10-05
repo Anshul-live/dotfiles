@@ -1,0 +1,76 @@
+{
+  "GET request": {
+    "prefix": "get",
+    "body": ["GET {{base_url}}/${1:path}", "HTTP ${2:200}", "$0"],
+    "description": "GET with expected status"
+  },
+  "POST JSON": {
+    "prefix": "post",
+    "body": [
+      "POST {{base_url}}/${1:path}",
+      "Content-Type: application/json",
+      "{",
+      "  \"${2:key}\": \"${3:value}\"",
+      "}",
+      "HTTP ${4:201}",
+      "$0"
+    ],
+    "description": "POST a JSON body"
+  },
+  "PUT JSON": {
+    "prefix": "put",
+    "body": ["PUT {{base_url}}/${1:path}", "Content-Type: application/json", "{", "  \"${2:key}\": \"${3:value}\"", "}", "HTTP ${4:200}", "$0"],
+    "description": "PUT a JSON body"
+  },
+  "DELETE": {
+    "prefix": "delete",
+    "body": ["DELETE {{base_url}}/${1:path}", "HTTP ${2:204}", "$0"],
+    "description": "DELETE with expected status"
+  },
+  "Login and capture token": {
+    "prefix": "login",
+    "body": [
+      "POST {{base_url}}/${1:login}",
+      "Content-Type: application/json",
+      "{",
+      "  \"${2:email}\": \"{{${3:email}}}\",",
+      "  \"password\": \"{{password}}\"",
+      "}",
+      "HTTP 200",
+      "[Captures]",
+      "token: jsonpath \"\\$.${4:token}\"",
+      "$0"
+    ],
+    "description": "log in and save the token as {{token}}"
+  },
+  "Authorized GET": {
+    "prefix": "auth",
+    "body": ["GET {{base_url}}/${1:path}", "Authorization: Bearer {{token}}", "HTTP ${2:200}", "$0"],
+    "description": "GET with the captured bearer token"
+  },
+  "Asserts block": {
+    "prefix": "asserts",
+    "body": ["[Asserts]", "jsonpath \"\\$.${1:field}\" ${2:==} ${3:value}", "duration < ${4:500}", "$0"],
+    "description": "json field check + response time"
+  },
+  "Query params": {
+    "prefix": "query",
+    "body": ["[QueryStringParams]", "${1:key}: ${2:value}", "$0"],
+    "description": "?key=value parameters"
+  },
+  "Form body": {
+    "prefix": "form",
+    "body": ["[FormParams]", "${1:key}: ${2:value}", "$0"],
+    "description": "url-encoded form body"
+  },
+  "File upload": {
+    "prefix": "upload",
+    "body": ["POST {{base_url}}/${1:upload}", "[MultipartFormData]", "${2:file}: file,${3:path/to/file};", "HTTP ${4:200}", "$0"],
+    "description": "multipart file upload"
+  },
+  "GraphQL": {
+    "prefix": "graphql",
+    "body": ["POST {{base_url}}/${1:graphql}", "```graphql", "${2:query { field \\}}", "```", "HTTP 200", "$0"],
+    "description": "GraphQL query"
+  }
+}

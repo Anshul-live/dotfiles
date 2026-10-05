@@ -32,10 +32,12 @@ return {
         per_filetype = {
           sql = { "dadbod", "snippets", "buffer" },
           mysql = { "dadbod", "snippets", "buffer" },
+          hurl = { "hurl", "snippets", "path", "buffer" },
         },
         providers = {
           lazydev = { name = "LazyDev", module = "lazydev.integrations.blink", score_offset = 100 },
           dadbod = { name = "DB", module = "vim_dadbod_completion.blink" }, -- tables/columns in SQL
+          hurl = { name = "Hurl", module = "config.hurl_cmp", score_offset = 50 }, -- no Hurl LSP exists
         },
       },
       cmdline = {

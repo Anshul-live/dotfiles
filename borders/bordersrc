@@ -1,12 +1,11 @@
 #!/bin/bash
+# Focused window outline in vague's keyword blue (same accent as Neovim's cursor line number).
 
 borders width=6.0 \
         hidpi=on \
-        active_color=0xff89b4fa \
+        active_color=0xff6e94b2 \
         inactive_color=0x00000000 \
-        background_color=0x302c2e34 \
         style=round \
         radius=12.0 \
-        blur_radius=30 \
         active_opacity=1.0 \
         inactive_opacity=0.0

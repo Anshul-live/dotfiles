@@ -1,0 +1,61 @@
+# Prompt in vague, the same colours as Neovim, Ghostty, tmux and sketchybar.
+add_newline = true
+palette = "vague"
+
+# directory, git, then only what matters right now: ssh host, python venv, slow commands
+format = """
+$directory$git_branch$git_status$hostname$python$cmd_duration
+$character"""
+command_timeout = 200 # never let a slow git repo hold up the prompt
+
+[hostname]
+ssh_only = true
+style = "warning"
+format = "[ssh $hostname]($style) "
+
+[python]
+style = "comment"
+format = '[(venv $virtualenv )]($style)'
+detect_extensions = []
+detect_files = []
+
+[cmd_duration]
+min_time = 2000
+style = "comment"
+format = "[took $duration]($style)"
+
+[directory]
+style = "keyword bold"
+truncation_length = 3
+truncate_to_repo = true
+format = "[$path]($style) "
+read_only = " ro"
+
+[git_branch]
+symbol = " "
+style = "parameter"
+format = "on [$symbol$branch]($style) "
+
+[git_status]
+style = "error"
+format = '([$all_status$ahead_behind]($style) )'
+
+[character]
+success_symbol = "[❯](bold plus)"
+error_symbol = "[❯](bold error)"
+vicmd_symbol = "[❮](bold warning)"
+
+# vague.nvim get_palette()
+[palettes.vague]
+bg = "#141415"
+fg = "#cdcdcd"
+line = "#252530"
+comment = "#606079"
+keyword = "#6e94b2"
+parameter = "#bb9dbd"
+constant = "#aeaed1"
+string = "#e8b589"
+func = "#c48282"
+plus = "#7fa563"
+warning = "#f3be7c"
+error = "#d8647e"

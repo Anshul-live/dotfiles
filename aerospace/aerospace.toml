@@ -5,10 +5,11 @@
 # Workspaces are letters for what lives there; apps land on theirs when they open:
 #   T terminal (Ghostty: tmux + nvim, Claude inside nvim)   B browser (Safari)
 #   N notes (Obsidian)   C comms (Mail, Calendar, Messages, WhatsApp)
-#   V video (DaVinci Resolve)   M music (Spotify)   1 2 3 spare, for anything else
+#   V video (DaVinci Resolve)   M music (Spotify)   D design (draw.io, Excalidraw)
+#   1 2 3 spare, for anything else
 #
-#   ctrl-alt-t b n c v m 1 2 3        go to workspace
-#   ctrl-alt-shift-t b n c v m 1 2 3  send window there (and follow it)
+#   ctrl-alt-t b n c v m d 1 2 3      go to workspace
+#   ctrl-alt-shift-t b n c v m d 1 2 3 send window there (and follow it)
 #   ctrl-alt-tab                      previous workspace
 #   ctrl-alt-h j k l                  focus left/down/up/right
 #   ctrl-alt-shift-h j k l            move window
@@ -18,7 +19,7 @@
 #   ctrl-alt-- / =                    shrink / grow
 #
 #   ctrl-alt-space    WINDOW mode (sketchybar shows a cheat-sheet), then one key:
-#     d s v m         setups: dev / study / video / morning comms (see setup.sh)
+#     d s v m e       setups: dev / study / video / morning comms / design (see setup.sh)
 #     h j k l, H J K L, - =, f, /, ,   same as above without Ctrl+Alt (handy for repeated resizing)
 #     ctrl-h/j/k/l    join with the neighbour (nest into a split)
 #     t               float <-> tile
@@ -45,7 +46,7 @@ on-focused-monitor-changed = ['move-mouse monitor-lazy-center']
 automatically-unhide-macos-hidden-apps = false
 
 # the bar hides empty ones anyway; this keeps the order fixed
-persistent-workspaces = ["T", "B", "N", "C", "V", "M", "1", "2", "3"]
+persistent-workspaces = ["T", "B", "N", "C", "V", "M", "D", "1", "2", "3"]
 
 # sketchybar: highlight the focused workspace, show the WINDOW mode badge
 # (full path: commands run from AeroSpace don't have Homebrew on their PATH)
@@ -94,6 +95,7 @@ ctrl-alt-n = 'workspace N'
 ctrl-alt-c = 'workspace C'
 ctrl-alt-v = 'workspace V'
 ctrl-alt-m = 'workspace M'
+ctrl-alt-d = 'workspace D'
 ctrl-alt-1 = 'workspace 1'
 ctrl-alt-2 = 'workspace 2'
 ctrl-alt-3 = 'workspace 3'
@@ -104,6 +106,7 @@ ctrl-alt-shift-n = 'move-node-to-workspace N --focus-follows-window'
 ctrl-alt-shift-c = 'move-node-to-workspace C --focus-follows-window'
 ctrl-alt-shift-v = 'move-node-to-workspace V --focus-follows-window'
 ctrl-alt-shift-m = 'move-node-to-workspace M --focus-follows-window'
+ctrl-alt-shift-d = 'move-node-to-workspace D --focus-follows-window'
 ctrl-alt-shift-1 = 'move-node-to-workspace 1 --focus-follows-window'
 ctrl-alt-shift-2 = 'move-node-to-workspace 2 --focus-follows-window'
 ctrl-alt-shift-3 = 'move-node-to-workspace 3 --focus-follows-window'
@@ -144,6 +147,7 @@ d = ['mode main', 'exec-and-forget ~/.config/aerospace/setup.sh dev']
 s = ['mode main', 'exec-and-forget ~/.config/aerospace/setup.sh study']
 v = ['mode main', 'exec-and-forget ~/.config/aerospace/setup.sh video']
 m = ['mode main', 'exec-and-forget ~/.config/aerospace/setup.sh comms']
+e = ['mode main', 'exec-and-forget ~/.config/aerospace/setup.sh design']
 
 # ---------------------------------------------------------------------------
 # where apps land
@@ -192,6 +196,10 @@ run = 'move-node-to-workspace V'
 [[on-window-detected]]
 if.app-id = 'com.spotify.client'
 run = 'move-node-to-workspace M'
+
+[[on-window-detected]]
+if.app-id = 'com.jgraph.drawio.desktop'
+run = 'move-node-to-workspace D'
 
 # small utility windows float instead of tiling
 [[on-window-detected]]

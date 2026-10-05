@@ -1,0 +1,32 @@
+# Read by every zsh (scripts too), so only environment here; keep it fast.
+# Linked to ~/.zshenv and $ZDOTDIR/.zshenv by install.sh. Interactive setup lives in $ZDOTDIR/.zshrc.
+export ZDOTDIR="$HOME/.config/zsh"
+
+# Homebrew: Apple Silicon, Intel Mac, or Linux
+for HOMEBREW_PREFIX in /opt/homebrew /home/linuxbrew/.linuxbrew $HOME/.linuxbrew /usr/local; do
+  [[ -x $HOMEBREW_PREFIX/bin/brew ]] && break
+done
+export HOMEBREW_PREFIX
+
+typeset -U path PATH
+path=(
+  $HOMEBREW_PREFIX/bin $HOMEBREW_PREFIX/sbin
+  $HOMEBREW_PREFIX/opt/binutils/bin
+  $HOMEBREW_PREFIX/opt/llvm/bin
+  $HOME/.local/bin
+  $HOME/bin
+  $HOME/.cargo/bin
+  $HOME/.opencode/bin
+  $path
+)
+
+export EDITOR=nvim VISUAL=nvim
+export PAGER="less" LESS="-RFi"   # -F: short output just prints, no pager
+export MANPAGER="nvim +Man!"      # man pages open in Neovim (folds, links, search)
+export BAT_PAGER="less -RF"
+
+# Java 11 (looked up once; child shells inherit it)
+[[ -z $JAVA_HOME ]] && export JAVA_HOME=$(/usr/libexec/java_home -v 11 2>/dev/null)
+
+# RFC reader
+export RFC_HOME="$HOME/rfc" RFC_ROOT_DIR="$HOME/rfc" RFC_INDEX="$HOME/rfc/rfc_index_clean.txt"

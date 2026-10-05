@@ -5,7 +5,8 @@ font-feature = -liga
 font-feature = -calt
 adjust-cell-height = 15%
 
-# Colors: vague (matches the Neovim colorscheme). Opaque, no blur: nothing behind your code.
+# Colors: vague, same as Neovim, tmux, kitty, sketchybar and borders (Ghostty's bundled
+# 'Vague' theme, but selection uses Neovim's visual colour). Opaque, no blur: nothing behind your code.
 background = #141415
 foreground = #cdcdcd
 cursor-color = #cdcdcd
@@ -31,7 +32,44 @@ palette = 15=#d7d7d7
 background-opacity = 1
 cursor-style-blink = false
 
+cursor-style = block
 mouse-hide-while-typing = true
+
+# Window: no title bar (AeroSpace tiles it, see aerospace.toml), a little even padding
+# whose colour matches the edge cells, so nvim/tmux bars reach the window edge.
 window-decoration = false
-macos-option-as-alt = true
 macos-titlebar-style = hidden
+window-padding-x = 6
+window-padding-y = 4
+window-padding-balance = true
+window-padding-color = extend
+# no size popup every time AeroSpace retiles
+resize-overlay = never
+# setups open fresh windows; don't restore old ones on launch
+window-save-state = never
+# tmux keeps the session, closing a window loses nothing
+confirm-close-surface = false
+quit-after-last-window-closed = true
+
+# Keys: both Option keys are Alt (Neovim's alt maps). Ghostty's own splits/tabs aren't
+# needed under tmux, so only a few extras.
+macos-option-as-alt = true
+# Alt+←/→: send real Alt+arrows (Ghostty's default turns them into Esc-b/Esc-f word jumps),
+# so tmux and Neovim can resize panes with them; zsh maps them to word jumps itself
+keybind = alt+arrow_left=unbind
+keybind = alt+arrow_right=unbind
+# drop-down terminal from anywhere
+keybind = global:ctrl+alt+grave_accent=toggle_quick_terminal
+quick-terminal-position = top
+quick-terminal-animation-duration = 0
+
+# Shell integration: keep the block cursor (nvim sets its own), sudo keeps terminfo
+shell-integration-features = no-cursor,sudo,title
+
+# Clipboard: select to copy; let nvim/tmux read+write it over OSC 52
+copy-on-select = clipboard
+clipboard-read = allow
+clipboard-write = allow
+
+# tmux keeps the scrollback (50k lines); a smaller buffer here saves memory per window
+scrollback-limit = 2000000

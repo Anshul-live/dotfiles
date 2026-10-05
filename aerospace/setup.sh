@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 # Prewritten setups: open the apps for a task and spread them over workspaces.
-# Run from AeroSpace WINDOW mode (ctrl-alt-space, then d / s / v / m), or by hand: setup.sh dev
+# Run from AeroSpace WINDOW mode (ctrl-alt-space, then d / s / v / m / e), or by hand: setup.sh dev
 #
 #   dev    T Ghostty: pick a project -> tmux session (nvim + shell)   B Safari      ends on T
 #   study  N Obsidian | Safari side by side   M Spotify (background)                ends on N
 #   video  V DaVinci Resolve   M Spotify (background)                               ends on V
 #   comms  C Mail, Calendar, Messages, WhatsApp                                     ends on C
+#   design D draw.io | Excalidraw (Safari) side by side                              ends on D
 #
 # Safe to re-run: anything already in place is left alone, only missing windows are opened.
 set -u
@@ -20,6 +21,7 @@ MAIL=com.apple.mail
 CALENDAR=com.apple.iCal
 MESSAGES=com.apple.MobileSMS
 WHATSAPP=net.whatsapp.WhatsApp
+DRAWIO=com.jgraph.drawio.desktop
 
 # window ids of an app, optionally only on one workspace
 wins() {
@@ -74,6 +76,11 @@ safari_window() {
 	pgrep -xq Safari || { open -b $SAFARI && sleep 1; }
 	osascript -e 'tell application "Safari" to make new document' >/dev/null
 }
+excalidraw_window() {
+	pgrep -xq Safari || { open -b $SAFARI && sleep 1; }
+	# Safari ignores a URL given at creation, so open the window, then point it at the page
+	osascript -e 'tell application "Safari"' -e 'make new document' -e 'set URL of front document to "https://excalidraw.com"' -e 'end tell' >/dev/null
+}
 spotify_bg() { open -gb $SPOTIFY; } # -g: start without stealing focus
 
 # lay workspace $1 out side by side, $2's window on the left
@@ -82,7 +89,11 @@ side_by_side() {
 	left=$(wins "$2" "$1" | head -1)
 	[ -z "$left" ] && return
 	aerospace layout --window-id "$left" h_tiles
-	aerospace move --window-id "$left" --boundaries workspace --boundaries-action stop left 2>/dev/null
+	# list-windows is in layout order: swap until $2's window is first (leftmost)
+	for _ in 1 2 3; do
+		[ "$(aerospace list-windows --workspace "$1" --format '%{window-id}' | head -1)" = "$left" ] && break
+		aerospace swap --window-id "$left" left 2>/dev/null
+	done
 }
 
 case "${1:-}" in
@@ -107,8 +118,14 @@ comms)
 	for app in $MAIL $CALENDAR $MESSAGES $WHATSAPP; do place $app C; done
 	aerospace workspace C
 	;;
+design)
+	place $DRAWIO D
+	place_new $SAFARI D excalidraw_window
+	side_by_side D $DRAWIO
+	aerospace workspace D
+	;;
 *)
-	echo "usage: $(basename "$0") dev|study|video|comms" >&2
+	echo "usage: $(basename "$0") dev|study|video|comms|design" >&2
 	exit 1
 	;;
 esac

@@ -29,6 +29,67 @@ require("config.modes").define("docker", {
   },
 })
 
+-- a request starts with its method line; the request "at the cursor" is the nearest one above
+local methods = { GET = 1, POST = 1, PUT = 1, PATCH = 1, DELETE = 1, HEAD = 1, OPTIONS = 1 }
+local function request_at_cursor()
+  for l = vim.fn.line("."), 1, -1 do
+    local word = (vim.fn.getline(l):match("^%s*(%u+)%s+%S") or "")
+    if methods[word] then
+      return true
+    end
+  end
+  return false
+end
+
+-- Run a Hurl command from the .hurl file even when the cursor is in the response split
+-- (which takes focus when it opens), then hand focus back so the next `s` works too.
+-- at_cursor: the command sends the request under the cursor, so check there is one first
+-- (hurl.nvim's own message is hidden by show_notification = false).
+local function hurl(cmd, at_cursor)
+  return function()
+    local win = vim.api.nvim_get_current_win()
+    if vim.bo.filetype ~= "hurl" then
+      for _, w in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
+        if vim.bo[vim.api.nvim_win_get_buf(w)].filetype == "hurl" then
+          win = w
+          break
+        end
+      end
+      vim.api.nvim_set_current_win(win)
+    end
+    if vim.bo.filetype ~= "hurl" then
+      return vim.notify("no .hurl file in this tab", vim.log.levels.WARN)
+    end
+    if at_cursor and not request_at_cursor() then
+      return vim.notify(
+        "No request at the cursor. A request starts with a method line, e.g.\n  GET http://localhost:3000/health",
+        vim.log.levels.WARN,
+        { title = "hurl" }
+      )
+    end
+    vim.cmd(cmd)
+    -- the response split opens (and takes focus) when the request finishes
+    local id = vim.api.nvim_create_autocmd("WinEnter", {
+      once = true,
+      callback = function()
+        vim.schedule(function()
+          if vim.api.nvim_win_is_valid(win) then
+            vim.api.nvim_set_current_win(win)
+          end
+        end)
+      end,
+    })
+    vim.defer_fn(function() -- no response window (e.g. the request failed): don't hijack a later WinEnter
+      pcall(vim.api.nvim_del_autocmd, id)
+    end, 30000)
+  end
+end
+
+local function toggle_response_layout()
+  vim.cmd("HurlToggleMode")
+  vim.notify("responses now open in a " .. _HURL_GLOBAL_CONFIG.mode, vim.log.levels.INFO, { title = "hurl" })
+end
+
 return {
   -- REST client: requests in plain-text *.hurl files (free hurl CLI, also works as API tests).
   -- In a .hurl file <CR> (or <leader>r) sends the request under the cursor; http mode has the rest.
@@ -41,10 +102,10 @@ return {
         key = "<leader>oh",
         desc = "send requests from requests.hurl",
         keys = {
-          { "s", "<cmd>HurlRunnerAt<CR>", "send request" },
-          { "a", "<cmd>HurlRunner<CR>", "send all" },
-          { "v", "<cmd>HurlVerbose<CR>", "send verbose" },
-          { "m", "<cmd>HurlToggleMode<CR>", "split / popup" },
+          { "s", hurl("HurlRunnerAt", true), "send request" },
+          { "a", hurl("HurlRunner"), "send all" },
+          { "v", hurl("HurlVerbose", true), "send verbose" },
+          { "m", toggle_response_layout, "split / popup" },
           { "o", "<cmd>edit requests.hurl<CR>", "requests.hurl" },
         },
         on_enter = function()
@@ -56,6 +117,7 @@ return {
     end,
     opts = {
       mode = "split",
+      auto_close = false, -- keep the response open while the cursor is back in the .hurl file
       show_notification = false,
       formatters = { json = { "jq" } },
       split_position = "right",
@@ -67,8 +129,9 @@ return {
         local function map(lhs, rhs, desc)
           vim.keymap.set("n", lhs, rhs, { buffer = buf, desc = desc })
         end
-        map("<CR>", "<cmd>HurlRunnerAt<CR>", "Send request")
-        map("<leader>r", "<cmd>HurlRunnerAt<CR>", "Send request")
+        map("<CR>", hurl("HurlRunnerAt", true), "Send request")
+        map("<leader>r", hurl("HurlRunnerAt", true), "Send request")
+        require("config.hurl_cmp").attach(buf) -- completion menu after [ {{ Header: query
       end
       vim.api.nvim_create_autocmd("FileType", {
         pattern = "hurl",

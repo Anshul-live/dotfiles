@@ -26,7 +26,7 @@ sketchybar --add event aerospace_mode_change \
 
 # key | action, one popup row each (keep in sync with aerospace/aerospace.toml)
 HELP=(
-	"d s v m|setup: dev / study / video / comms"
+	"d s v m e|setup: dev / study / video / comms / design"
 	"h j k l|focus window"
 	"H J K L|move window"
 	"ctrl-h j k l|join with neighbour (split)"
@@ -39,7 +39,7 @@ HELP=(
 	"x|close window"
 	"c|reload config"
 	"esc|back to normal"
-	"⌃⌥ T B N C V M|go to workspace (no mode needed)"
+	"⌃⌥ T B N C V M D|go to workspace (no mode needed)"
 )
 i=0
 for row in "${HELP[@]}"; do

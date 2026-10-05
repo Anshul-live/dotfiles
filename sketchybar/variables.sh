@@ -1,30 +1,19 @@
 #!/usr/bin/env sh
 
-# Color Palette
-# Tokyonight Night
-BLACK=0xff24283b
-WHITE=0xffa9b1d6
-MAGENTA=0xffbb9af7
-BLUE=0xff7aa2f7
-CYAN=0xff7dcfff
-GREEN=0xff9ece6a
-YELLOW=0xffe0af68
-ORANGE=0xffff9e64
-RED=0xfff7768e
-BAR_COLOR=0xff1a1b26 # editor background, so the bar reads as part of the screen
-COMMENT=0xff565f89
-
-# Tokyonight Day
-# BLACK=0xffe9e9ed
-# WHITE=0xff3760bf
-# MAGENTA=0xff9854f1
-# BLUE=0xff2e7de9
-# CYAN=0xff007197
-# GREEN=0xff587539
-# YELLOW=0xff8c6c3e
-# ORANGE=0xffb15c00
-# RED=0xfff52a65
-# BAR_COLOR=0xffe1e2e7
+# Color Palette: vague, the same colours as Neovim, Ghostty, kitty and tmux
+# (values from vague.nvim's get_palette(); keep the names so the item scripts don't change)
+BLACK=0xff141415     # bg
+WHITE=0xffcdcdcd     # fg
+MAGENTA=0xffbb9dbd   # parameter
+BLUE=0xff6e94b2      # keyword
+CYAN=0xffaeaed1      # constant
+GREEN=0xff7fa563     # plus
+YELLOW=0xfff3be7c    # warning
+ORANGE=0xffe0a363    # number
+RED=0xffd8647e       # error
+COMMENT=0xff606079   # comment
+LINE=0xff252530      # line (raised surfaces: popups)
+BAR_COLOR=$BLACK     # same as the terminal background, so the bar reads as part of the screen
 
 TRANSPARENT=0x00000000
 
@@ -41,7 +30,7 @@ PADDINGS=3
 
 POPUP_BORDER_WIDTH=2
 POPUP_CORNER_RADIUS=11
-POPUP_BACKGROUND_COLOR=$BLACK
+POPUP_BACKGROUND_COLOR=$LINE
 POPUP_BORDER_COLOR=$COMMENT
 
 CORNER_RADIUS=6

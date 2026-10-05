@@ -1,0 +1,22 @@
+# Interactive zsh. Linked to ~/.config/zsh/.zshrc by install.sh; the other files
+# in this folder are sourced from here (found through the link, so nothing else to link).
+ZSH_DIR=${${(%):-%x}:A:h}
+
+# --- options -----------------------------------------------------------------
+setopt AUTO_CD AUTO_PUSHD PUSHD_IGNORE_DUPS PUSHD_SILENT # `cd -<tab>` lists recent dirs
+setopt INTERACTIVE_COMMENTS EXTENDED_GLOB NO_BEEP
+
+HISTFILE=$HOME/.zsh_history
+HISTSIZE=100000
+SAVEHIST=100000
+setopt EXTENDED_HISTORY SHARE_HISTORY       # timestamps; history shared live between shells
+setopt HIST_IGNORE_ALL_DUPS HIST_IGNORE_SPACE # no duplicates; ` cmd` (leading space) isn't saved
+setopt HIST_REDUCE_BLANKS HIST_VERIFY       # `!!` expands for review instead of running
+
+# --- modules (order matters: completion before fzf-tab, highlighting last) ----
+source $ZSH_DIR/colors.zsh
+source $ZSH_DIR/plugins.zsh   # fetch plugins, add completions to fpath
+source $ZSH_DIR/completion.zsh
+source $ZSH_DIR/aliases.zsh
+source $ZSH_DIR/keybinds.zsh
+source $ZSH_DIR/tools.zsh     # fzf, zoxide, autosuggestions, syntax highlighting, prompt
