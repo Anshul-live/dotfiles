@@ -6,8 +6,8 @@ theme = "vague"
 
 # Own Spotify app = own API quota (the shared default client gets rate limited). The client id
 # isn't a secret (PKCE, no client secret), but it lives in Bitwarden with the rest; absolute
-# path because launchd/tmux shells may not have Homebrew on PATH. Uncomment once the entry exists.
-# client_id_command = { command = "/opt/homebrew/bin/rbw", args = ["get", "Spotify client id"] }
+# path because launchd/tmux shells may not have Homebrew on PATH.
+client_id_command = { command = "/opt/homebrew/bin/rbw", args = ["get", "spotify client id"] }
 
 # Built-in player (librespot): this Mac shows up as a Spotify Connect device named below.
 enable_streaming = "Always"
