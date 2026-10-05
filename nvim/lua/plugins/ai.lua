@@ -26,7 +26,6 @@ return {
     dependencies = {
       "nvim-lua/plenary.nvim",
       "nvim-treesitter/nvim-treesitter",
-      "cairijun/codecompanion-agentskills.nvim",
     },
     cmd = { "CodeCompanion", "CodeCompanionChat", "CodeCompanionActions", "CodeCompanionCmd" },
     keys = {
@@ -37,7 +36,7 @@ return {
       { "<leader>ac", "<cmd>CodeCompanionChat Add<CR>", mode = "v", desc = "Add selection to chat" },
       { "<leader>ar", ":CodeCompanion /review<CR>", mode = "v", desc = "Review selection" },
       { "<leader>ae", ":CodeCompanion /explain<CR>", mode = "v", desc = "Explain selection" },
-      { "<leader>aR", ":CodeCompanion /refactor<CR>", mode = "v", desc = "Refactor selection" },
+      { "<leader>af", ":CodeCompanion /refactor<CR>", mode = "v", desc = "Fix / refactor selection" },
       { "<leader>at", ":CodeCompanion /tests<CR>", mode = "v", desc = "Write tests for selection" },
     },
     opts = {
@@ -66,16 +65,6 @@ return {
         },
         inline = { adapter = "openrouter" },
         cmd = { adapter = "openrouter" },
-      },
-      extensions = {
-        agentskills = {
-          opts = {
-            paths = {
-              vim.fn.expand("~/.opencode/skills"),
-              vim.fn.expand("~/.config/opencode/skills"),
-            },
-          },
-        },
       },
       mcp = {
         servers = {

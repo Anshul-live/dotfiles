@@ -20,8 +20,8 @@ map("v", "<", "<gv")
 map("v", ">", ">gv")
 
 -- registers
-map("v", "<leader>d", '"_d', { desc = "Delete without yank" })
-map("n", "<leader>D", '"_d', { desc = "Delete without yank" })
+-- (<leader>D, not <leader>d: that's the debug group, and visual <leader>de evaluates)
+map({ "n", "x" }, "<leader>D", '"_d', { desc = "Delete without yank" })
 map("v", "<leader>p", '"_dP', { desc = "Paste over without yank" })
 
 -- escape
@@ -29,7 +29,6 @@ map("i", "jk", "<Esc>")
 map("i", "jj", "<Esc>")
 
 -- files / buffers
-map("n", "<leader>pv", "<cmd>Ex<CR>", { desc = "Netrw explorer" })
 map("n", "<BS>", "<cmd>b#<CR>", { silent = true, desc = "Previous file" })
 map("n", "<leader>r", function()
   require("config.run").run()
@@ -40,21 +39,19 @@ end, { desc = "Run with arguments" })
 map("n", "<leader>w", "<cmd>w<CR>", { desc = "Save" })
 map("n", "<leader>bn", "<cmd>enew<CR>", { desc = "New buffer" })
 
--- windows (<C-h/j/k/l> navigation is handled by vim-tmux-navigator)
+-- windows (<C-h/j/k/l> move and <M-arrows> resize via smart-splits, plugins/editor.lua)
 map("n", "<leader>|", "<cmd>vsplit<CR>", { desc = "Split right" })
 map("n", "<leader>-", "<cmd>split<CR>", { desc = "Split below" })
-map("n", "<C-Up>", "<cmd>resize +2<CR>", { desc = "Increase height" })
-map("n", "<C-Down>", "<cmd>resize -2<CR>", { desc = "Decrease height" })
-map("n", "<C-Left>", "<cmd>vertical resize -2<CR>", { desc = "Decrease width" })
-map("n", "<C-Right>", "<cmd>vertical resize +2<CR>", { desc = "Increase width" })
 
 -- terminals (debug I/O, runner, <C-/>): <Esc><Esc> back to normal mode,
 -- <C-h/j/k/l> leave the terminal window directly
 map("t", "<Esc><Esc>", "<C-\\><C-n>", { desc = "Normal mode" })
-map("t", "<C-h>", "<C-\\><C-n><cmd>TmuxNavigateLeft<CR>", { desc = "Window left" })
-map("t", "<C-j>", "<C-\\><C-n><cmd>TmuxNavigateDown<CR>", { desc = "Window down" })
-map("t", "<C-k>", "<C-\\><C-n><cmd>TmuxNavigateUp<CR>", { desc = "Window up" })
-map("t", "<C-l>", "<C-\\><C-n><cmd>TmuxNavigateRight<CR>", { desc = "Window right" })
+for key, dir in pairs({ h = "left", j = "down", k = "up", l = "right" }) do
+  map("t", "<C-" .. key .. ">", function()
+    vim.cmd.stopinsert()
+    require("smart-splits")["move_cursor_" .. dir]()
+  end, { desc = "Window " .. dir })
+end
 
 -- drop Neovim's gr* LSP prefix so `gr` (references) fires instantly;
 -- rename / code action live on <leader>cr / <leader>ca
@@ -70,9 +67,6 @@ end, { desc = "Next error" })
 map("n", "[e", function()
   vim.diagnostic.jump({ count = -1, severity = vim.diagnostic.severity.ERROR })
 end, { desc = "Prev error" })
-
--- quickfix
-map("n", "<leader>xq", "<cmd>copen<CR>", { desc = "Quickfix list" })
 
 -- undotree (built into Neovim 0.12)
 map("n", "<leader>uu", function()

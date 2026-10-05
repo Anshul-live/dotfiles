@@ -111,6 +111,6 @@ return {
     { "nvim-neotest/neotest-jest", lazy = true },
     { "marilari88/neotest-vitest", lazy = true },
     -- auto close/rename html & jsx tags
-    { "windwp/nvim-ts-autotag", event = { "BufReadPre", "BufNewFile" }, opts = {} },
+    { "windwp/nvim-ts-autotag", ft = { "html", "javascriptreact", "typescriptreact", "vue", "svelte", "xml" }, opts = {} },
   },
 }

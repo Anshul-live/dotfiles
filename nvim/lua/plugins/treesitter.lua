@@ -17,12 +17,43 @@ return {
         require("nvim-treesitter").install(missing)
       end
 
+      local function start(buf, lang)
+        if vim.api.nvim_buf_is_valid(buf) and pcall(vim.treesitter.start, buf, lang) then
+          vim.bo[buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+        end
+      end
+
+      -- Compiling a language's queries is the slowest part of opening a file
+      -- (C++ highlights alone take ~180ms). Neovim caches them per session, so:
+      -- first file of a language -> draw the text first, highlight right after,
+      -- then compile its other queries in idle slices (no hitch on first Enter/fold).
+      local warm = {}
       vim.api.nvim_create_autocmd("FileType", {
         group = vim.api.nvim_create_augroup("user_treesitter", { clear = true }),
         callback = function(ev)
-          if pcall(vim.treesitter.start, ev.buf) then
-            vim.bo[ev.buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+          local lang = vim.treesitter.language.get_lang(ev.match)
+          if vim.bo[ev.buf].buftype ~= "" then
+            return -- plugin windows (context, pickers) manage their own highlighting
           end
+          if not lang or not pcall(vim.treesitter.language.add, lang) then
+            return
+          end
+          if warm[lang] then
+            return start(ev.buf, lang)
+          end
+          warm[lang] = true
+          vim.schedule(function()
+            start(ev.buf, lang)
+            local kinds = { "indents", "folds", "injections" }
+            local function step()
+              local kind = table.remove(kinds, 1)
+              if kind then
+                pcall(vim.treesitter.query.get, lang, kind)
+                vim.defer_fn(step, 20)
+              end
+            end
+            vim.defer_fn(step, 50)
+          end)
         end,
       })
     end,
@@ -38,7 +69,6 @@ return {
       })
       local select = require("nvim-treesitter-textobjects.select")
       local move = require("nvim-treesitter-textobjects.move")
-      local swap = require("nvim-treesitter-textobjects.swap")
 
       -- vaf / dif / cic / yaa ...
       local objects = {
@@ -63,18 +93,11 @@ return {
           move.goto_previous_start("@" .. obj .. ".outer", "textobjects")
         end, { desc = "Prev " .. obj })
       end
-
-      vim.keymap.set("n", "<leader>cs", function()
-        swap.swap_next("@parameter.inner")
-      end, { desc = "Swap parameter with next" })
-      vim.keymap.set("n", "<leader>cS", function()
-        swap.swap_previous("@parameter.inner")
-      end, { desc = "Swap parameter with prev" })
     end,
   },
   {
     "nvim-treesitter/nvim-treesitter-context", -- sticky function/class header
-    event = { "BufReadPost", "BufNewFile" },
+    event = "VeryLazy", -- after the first screen; it highlights its own window on load
     opts = { max_lines = 3, multiline_threshold = 1 },
     keys = {
       { "<leader>ut", "<cmd>TSContext toggle<CR>", desc = "Toggle sticky context" },

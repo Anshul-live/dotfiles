@@ -182,5 +182,7 @@ return {
   end,
   plugins = {
     { "alfaix/neotest-gtest", lazy = true },
+    -- clangd extras: type hierarchy, symbol info, AST, memory usage (keys in plugins/lsp.lua)
+    { "p00f/clangd_extensions.nvim", ft = { "c", "cpp" }, opts = {} },
   },
 }

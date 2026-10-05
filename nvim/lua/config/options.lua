@@ -28,7 +28,7 @@ opt.showtabline = 0
 opt.splitright = true
 opt.splitbelow = true
 opt.laststatus = 3 -- one global statusline
-opt.showmode = false -- lualine shows the mode
+opt.showmode = false -- mode shows as the cursor line number color
 opt.pumheight = 12
 opt.winborder = "single" -- slim square borders on all floating windows
 opt.linebreak = true
@@ -73,9 +73,10 @@ pcall(function()
   require("vim._core.ui2").enable({ msg = { targets = "msg" } })
 end)
 
--- diagnostics: message shown inline only for the cursor line (<leader>uv for all lines)
+-- diagnostics: full message shown inline on the cursor line by tiny-inline-diagnostic
+-- (plugins/lsp.lua; <leader>uv for all lines)
 vim.diagnostic.config({
-  virtual_text = { current_line = true, spacing = 2 },
+  virtual_text = false,
   underline = true,
   update_in_insert = false,
   severity_sort = true,

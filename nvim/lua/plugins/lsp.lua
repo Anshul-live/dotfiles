@@ -17,7 +17,23 @@ return {
   {
     "WhoIsSethDaniel/mason-tool-installer.nvim",
     dependencies = { "mason-org/mason.nvim" },
-    event = "VeryLazy",
+    cmd = { "MasonToolsInstall", "MasonToolsUpdate" },
+    -- startup only stats Mason's package folders; the installer loads only if one is missing
+    init = function()
+      vim.api.nvim_create_autocmd("User", {
+        pattern = "VeryLazy",
+        once = true,
+        callback = function()
+          local root = vim.fn.stdpath("data") .. "/mason/packages/"
+          for _, tool in ipairs(lang.list("tools")) do
+            if not vim.uv.fs_stat(root .. tool) then
+              require("lazy").load({ plugins = { "mason-tool-installer.nvim" } })
+              return vim.cmd("MasonToolsInstall")
+            end
+          end
+        end,
+      })
+    end,
     config = function()
       local seen, tools = {}, {}
       for _, tool in ipairs(lang.list("tools")) do
@@ -27,7 +43,6 @@ return {
         end
       end
       require("mason-tool-installer").setup({ ensure_installed = tools, run_on_start = false })
-      vim.cmd("MasonToolsInstall")
     end,
   },
   {
@@ -61,16 +76,20 @@ return {
           map("gI", pick.lsp_implementations, "Go to implementation")
           map("<leader>ci", pick.lsp_incoming_calls, "Incoming calls")
           map("<leader>co", pick.lsp_outgoing_calls, "Outgoing calls")
-          map("<leader>.", vim.lsp.buf.code_action, "Fix / code action", { "n", "v" })
-          map("<leader>n", vim.lsp.buf.rename, "Rename symbol")
           map("<leader>ca", vim.lsp.buf.code_action, "Code action", { "n", "v" })
           map("<leader>cr", vim.lsp.buf.rename, "Rename symbol")
           map("<leader>cl", "<cmd>checkhealth vim.lsp<CR>", "LSP info")
-          map("<leader>cR", "<cmd>lsp restart<CR>", "Restart LSP")
+          map("<leader>cL", "<cmd>lsp restart<CR>", "Restart LSP")
 
           -- inlay hints are off by default to keep code clean; <leader>uh toggles them
           if client and client.name == "clangd" then
             map("<leader>ch", "<cmd>LspClangdSwitchSourceHeader<CR>", "Switch source/header")
+            -- clangd_extensions (lang/c.lua)
+            map("<leader>ct", "<cmd>ClangdTypeHierarchy<CR>", "Type hierarchy")
+            map("<leader>cy", "<cmd>ClangdSymbolInfo<CR>", "Symbol info")
+            map("<leader>cm", "<cmd>ClangdMemoryUsage<CR>", "clangd memory usage")
+            map("<leader>cA", "<cmd>ClangdAST<CR>", "AST of line")
+            map("<leader>cA", ":ClangdAST<CR>", "AST of selection", "x")
           end
         end,
       })
@@ -125,11 +144,15 @@ return {
     end,
   },
   {
-    "j-hui/fidget.nvim", -- LSP progress in the corner
-    event = "LspAttach",
+    "rachartier/tiny-inline-diagnostic.nvim", -- whole message inline (wrapped), no line shifting
+    -- it hooks a buffer on these events (default LspAttach only, which misses linter-only buffers)
+    event = { "LspAttach", "DiagnosticChanged" },
     opts = {
-      progress = { display = { done_icon = "\u{f00c}" } },
-      notification = { window = { winblend = 0, border = "none" } },
+      options = {
+        overwrite_events = { "LspAttach", "DiagnosticChanged" },
+        -- cursor line only; <leader>uv (plugins/ui.lua) turns on every line
+        multilines = { enabled = false, always_show = false },
+      },
     },
   },
 }

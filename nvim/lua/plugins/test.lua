@@ -5,14 +5,13 @@ return {
     dependencies = {
       "nvim-neotest/nvim-nio",
       "nvim-lua/plenary.nvim",
-      "antoinemadec/FixCursorHold.nvim",
       "nvim-treesitter/nvim-treesitter",
     },
     keys = {
       { "<leader>tt", function() require("neotest").run.run() end, desc = "Run nearest test" },
       { "<leader>tf", function() require("neotest").run.run(vim.fn.expand("%")) end, desc = "Run file" },
       { "<leader>tT", function() require("neotest").run.run(vim.uv.cwd()) end, desc = "Run all tests" },
-      { "<leader>tl", function() require("neotest").run.run_last() end, desc = "Run last" },
+      { "<leader>tl", function() require("neotest").run.run_last() end, desc = "Run last test" },
       { "<leader>td", function() require("neotest").run.run({ strategy = "dap" }) end, desc = "Debug nearest test" },
       { "<leader>ts", function() require("neotest").summary.toggle() end, desc = "Summary" },
       { "<leader>to", function() require("neotest").output.open({ enter = true, auto_close = true }) end, desc = "Output" },

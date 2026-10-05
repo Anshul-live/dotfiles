@@ -8,7 +8,7 @@ require("lazy").setup({
   spec = { { import = "plugins" } },
   install = { colorscheme = { "vague" } },
   rocks = { enabled = false }, -- no plugin here needs luarocks
-  checker = { enabled = true, notify = false }, -- check for updates in the background
+  checker = { enabled = false }, -- update manually with :Lazy update
   change_detection = { notify = false },
   ui = { border = "single", backdrop = 100 },
   performance = {

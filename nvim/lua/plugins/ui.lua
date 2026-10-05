@@ -51,6 +51,7 @@ return {
         end,
       })
       vim.cmd.colorscheme("vague")
+      require("config.statusline").setup()
 
       -- mode feedback where your eyes are: the cursor's line number takes the mode color
       local p = require("config.palette")
@@ -72,7 +73,7 @@ return {
     lazy = false,
     opts = {
       bigfile = { enabled = true }, -- disables heavy features on huge files
-      quickfile = { enabled = true },
+      quickfile = { enabled = false }, -- it starts treesitter synchronously; our deferred start is faster
       input = { enabled = true },
       notifier = {
         enabled = true,
@@ -89,7 +90,6 @@ return {
       lazygit = { enabled = true },
       terminal = { enabled = true },
       statuscolumn = { enabled = true, left = { "mark", "sign" }, right = { "git" } }, -- no fold column
-      explorer = { enabled = true, replace_netrw = false },
       picker = {
         enabled = true,
         ui_select = true, -- every vim.ui.select menu uses the picker
@@ -127,7 +127,6 @@ return {
         sources = {
           files = { hidden = true },
           grep = { hidden = true },
-          explorer = { hidden = true },
         },
       },
       dashboard = {
@@ -138,7 +137,7 @@ return {
             { icon = "\u{f002} ", key = "f", desc = "Find anything", action = ":lua Snacks.picker.smart({ filter = { cwd = true } })" },
             { icon = "\u{f0b0} ", key = "g", desc = "Grep text", action = ":lua Snacks.picker.grep()" },
             { icon = "\u{f1da} ", key = "r", desc = "Recent files", action = ":lua Snacks.picker.recent({ filter = { cwd = true } })" },
-            { icon = "\u{f07c} ", key = "e", desc = "Explorer", action = ":lua Snacks.explorer()" },
+            { icon = "\u{f07c} ", key = "e", desc = "Files (oil)", action = ":Oil" },
             { icon = "\u{f15b} ", key = "n", desc = "New file", action = ":ene | startinsert" },
             { icon = "\u{f0e2} ", key = "s", desc = "Restore session", section = "session" },
             { icon = "\u{f013} ", key = "c", desc = "Config", action = ":lua Snacks.picker.files({ cwd = vim.fn.stdpath('config') })" },
@@ -155,13 +154,12 @@ return {
     },
     keys = {
       { "<leader>gg", function() Snacks.lazygit() end, desc = "LazyGit" },
-      { "<leader>gl", function() Snacks.lazygit.log_file() end, desc = "LazyGit file log" },
       { "<leader>go", function() Snacks.gitbrowse() end, mode = { "n", "v" }, desc = "Open in browser" },
       { "<C-/>", function() Snacks.terminal() end, mode = { "n", "t" }, desc = "Toggle terminal" },
       { "<C-_>", function() Snacks.terminal() end, mode = { "n", "t" }, desc = "which_key_ignore" },
       { "<leader>bd", function() Snacks.bufdelete() end, desc = "Delete buffer" },
       { "<leader>bo", function() Snacks.bufdelete.other() end, desc = "Delete other buffers" },
-      { "<leader>cF", function() Snacks.rename.rename_file() end, desc = "Rename file" },
+      { "<leader>br", function() Snacks.rename.rename_file() end, desc = "Rename file" },
       { "<leader>uN", function() Snacks.picker.notifications() end, desc = "Notification history" },
       { "<leader>un", function() Snacks.notifier.hide() end, desc = "Dismiss notifications" },
       { "<leader>uz", function() Snacks.zen() end, desc = "Zen mode" },
@@ -182,14 +180,18 @@ return {
           toggle.indent():map("<leader>ui")
           toggle
             .new({
-              id = "virtual_text",
+              id = "inline_diagnostics",
               name = "Inline diagnostics (all lines)",
               get = function()
-                local vt = vim.diagnostic.config().virtual_text
-                return type(vt) == "table" and not vt.current_line
+                local tiny = package.loaded["tiny-inline-diagnostic"]
+                return tiny ~= nil and tiny.config.options.multilines.enabled
               end,
               set = function(on)
-                vim.diagnostic.config({ virtual_text = { current_line = not on or nil } })
+                local tiny = require("tiny-inline-diagnostic")
+                local ml = tiny.config.options.multilines
+                ml.enabled, ml.always_show = on, on
+                tiny.disable() -- no public re-render; cycling redraws every buffer
+                tiny.enable()
               end,
             })
             :map("<leader>uv")
@@ -226,123 +228,6 @@ return {
           if ev.data.actions[1] and ev.data.actions[1].type == "move" then
             Snacks.rename.on_rename_file(ev.data.actions[1].src_url, ev.data.actions[1].dest_url)
           end
-        end,
-      })
-    end,
-  },
-
-  -- statusline shows only what you might act on; mode lives on the cursor line number
-  {
-    "nvim-lualine/lualine.nvim",
-    event = "VeryLazy",
-    dependencies = { "nvim-tree/nvim-web-devicons" },
-    config = function()
-      local p = require("config.palette")
-      local plain = { a = { fg = p.fg, bg = p.bg }, b = { fg = p.fg, bg = p.bg }, c = { fg = p.dim, bg = p.bg } }
-      local theme = { normal = plain, insert = plain, visual = plain, replace = plain, command = plain, terminal = plain, inactive = plain }
-
-      local function breadcrumb()
-        local ok, aerial = pcall(require, "aerial")
-        if not ok then
-          return ""
-        end
-        local loc = aerial.get_location(true)
-        if type(loc) ~= "table" or #loc == 0 then
-          return ""
-        end
-        local parts = {}
-        for _, sym in ipairs(loc) do
-          table.insert(parts, (sym.icon or "") .. sym.name)
-        end
-        return table.concat(parts, " \u{f105} ")
-      end
-
-      local function recording()
-        local reg = vim.fn.reg_recording()
-        return reg ~= "" and ("\u{f111} rec @" .. reg) or ""
-      end
-
-      -- pinned files (harpoon): "1 main  2 oa", current one highlighted
-      local function pinned()
-        local ok, harpoon = pcall(require, "harpoon")
-        if not ok then
-          return ""
-        end
-        local current = vim.fn.expand("%:p")
-        local out = {}
-        for i, item in ipairs(harpoon:list().items) do
-          if i > 4 then
-            break
-          end
-          local name = vim.fn.fnamemodify(item.value, ":t:r")
-          local here = vim.fn.fnamemodify(item.value, ":p") == current
-          table.insert(out, (here and "%#SnacksPickerTitle#" or "%#Comment#") .. i .. " " .. name .. "%*")
-        end
-        return table.concat(out, "  ")
-      end
-
-      -- warn when a code file that should have an LSP has none
-      local lsp_fts
-      local function no_lsp()
-        if not lsp_fts then
-          lsp_fts = {}
-          for name in pairs(require("lang").map("servers")) do
-            for _, ft in ipairs((vim.lsp.config[name] or {}).filetypes or {}) do
-              lsp_fts[ft] = true
-            end
-          end
-          lsp_fts.rust = true
-        end
-        if vim.bo.buftype == "" and lsp_fts[vim.bo.filetype] and #vim.lsp.get_clients({ bufnr = 0 }) == 0 then
-          return "\u{f071} no LSP"
-        end
-        return ""
-      end
-
-      require("lualine").setup({
-        options = {
-          theme = theme,
-          section_separators = "",
-          component_separators = "",
-          globalstatus = true,
-          disabled_filetypes = { statusline = { "snacks_dashboard" } },
-        },
-        sections = {
-          lualine_a = {},
-          lualine_b = {},
-          lualine_c = {
-            { "filetype", icon_only = true, padding = { left = 1, right = 0 } },
-            {
-              "filename",
-              path = 1,
-              color = { fg = p.fg },
-              symbols = { modified = "\u{f111}", readonly = "\u{f023}", unnamed = "", newfile = "" },
-              fmt = function(name)
-                return vim.bo.buftype == "terminal" and "terminal" or name
-              end,
-            },
-            { breadcrumb, color = { fg = p.dim } },
-          },
-          lualine_x = {
-            { recording, color = { fg = p.command } },
-            { no_lsp, color = { fg = p.warn } },
-            {
-              "diagnostics",
-              symbols = { error = "\u{f057} ", warn = "\u{f071} ", info = "\u{f05a} ", hint = "\u{f0335} " },
-            },
-            { "diff", symbols = { added = "+", modified = "~", removed = "-" } },
-            { pinned },
-            { "branch", icon = "\u{e725}", color = { fg = p.dim } },
-          },
-          lualine_y = {},
-          lualine_z = {},
-        },
-        extensions = { "oil", "lazy", "mason", "trouble", "nvim-dap-ui", "quickfix" },
-      })
-
-      vim.api.nvim_create_autocmd({ "RecordingEnter", "RecordingLeave" }, {
-        callback = function()
-          vim.schedule(require("lualine").refresh)
         end,
       })
     end,

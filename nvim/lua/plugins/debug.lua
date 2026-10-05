@@ -7,8 +7,6 @@ return {
       "rcarriga/nvim-dap-ui",
       "nvim-neotest/nvim-nio",
       { "theHamsta/nvim-dap-virtual-text", opts = { virt_text_pos = "eol", highlight_changed_variables = true } },
-      -- breakpoints survive restarts (stored per file)
-      { "Weissle/persistent-breakpoints.nvim", opts = { load_breakpoints_event = { "BufReadPost" } } },
       "mason-org/mason.nvim", -- adapters run from Mason's bin/
     },
     keys = {
@@ -16,29 +14,29 @@ return {
       { "<leader>dn", function() require("dap").step_over() end, desc = "Step over" },
       { "<leader>di", function() require("dap").step_into() end, desc = "Step into" },
       { "<leader>do", function() require("dap").step_out() end, desc = "Step out" },
-      { "<leader>db", function() require("persistent-breakpoints.api").toggle_breakpoint() end, desc = "Toggle breakpoint" },
+      { "<leader>db", function() require("dap").toggle_breakpoint() end, desc = "Toggle breakpoint" },
       {
         "<leader>dB",
         function()
-          require("persistent-breakpoints.api").set_conditional_breakpoint()
+          require("dap").set_breakpoint(vim.fn.input("Condition: "))
         end,
         desc = "Conditional breakpoint",
       },
       {
         "<leader>dL",
         function()
-          require("persistent-breakpoints.api").set_log_point()
+          require("dap").set_breakpoint(nil, nil, vim.fn.input("Log message: "))
         end,
         desc = "Log point",
       },
       { "<leader>dC", function() require("dap").run_to_cursor() end, desc = "Run to cursor" },
       { "<leader>dr", function() require("dap").repl.toggle() end, desc = "REPL" },
-      { "<leader>dl", function() require("dap").run_last() end, desc = "Run last" },
+      { "<leader>dl", function() require("dap").run_last() end, desc = "Run last debug session" },
       { "<leader>dq", function() require("dap").terminate() end, desc = "Terminate" },
       { "<leader>du", function() require("dapui").toggle() end, desc = "Toggle UI" },
       { "<leader>de", function() require("dapui").eval() end, mode = { "n", "v" }, desc = "Evaluate" },
       { "<leader>dR", function() vim.api.nvim_feedkeys(vim.keycode("<S-Up>"), "m", false) end, desc = "Rewind to cursor line" },
-      { "<leader>dx", function() require("persistent-breakpoints.api").clear_all_breakpoints() end, desc = "Clear breakpoints" },
+      { "<leader>dx", function() require("dap").clear_breakpoints() end, desc = "Clear breakpoints" },
     },
     config = function()
       local dap, dapui = require("dap"), require("dapui")

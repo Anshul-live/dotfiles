@@ -27,7 +27,6 @@ return {
         { "<leader>f", group = "find", icon = "\u{f002} " },
         { "<leader>g", group = "git", icon = "\u{f1d3} " },
         { "<leader>h", group = "hunks", icon = "\u{f126} ", mode = { "n", "v" } },
-        { "<leader>p", group = "netrw", icon = "\u{f07c} " },
         { "<leader>o", group = "open", icon = "\u{f0e7} " },
         { "<leader>1", desc = "Pinned 1-4", icon = "\u{f08d} " },
         { "<leader>q", group = "session", icon = "\u{f0c7} " },
@@ -75,7 +74,7 @@ return {
               local prefix = item.item.lhs:match("^<Space>(%a)") or item.item.lhs:match("^ (%a)")
               item.group = ({
                 a = "ai", b = "buffer", c = "code", d = "debug", f = "find", g = "git", h = "git",
-                q = "session", s = "symbols", t = "test", u = "toggle", x = "lists",
+                o = "open", q = "session", s = "symbols", t = "test", u = "toggle", x = "lists",
               })[prefix or ""] or ""
               item.text = item.group .. " " .. desc .. " " .. item.item.lhs
             end,
@@ -90,30 +89,24 @@ return {
       { "<leader>ff", function() Snacks.picker.files() end, desc = "Files" },
       { "<leader>fg", function() Snacks.picker.git_files() end, desc = "Git files" },
       { "<leader>fr", function() Snacks.picker.recent({ filter = { cwd = true } }) end, desc = "Recent files" },
-      { "<leader>fe", function() Snacks.explorer() end, desc = "File tree" },
       { "<leader>fb", function() Snacks.picker.buffers() end, desc = "Buffers" },
       { "<leader>fh", function() Snacks.picker.help() end, desc = "Help" },
       { "<leader>fk", function() Snacks.picker.keymaps() end, desc = "Keymaps" },
       { "<leader>fc", function() Snacks.picker.commands() end, desc = "Commands" },
-      { "<leader>fd", function() Snacks.picker.diagnostics() end, desc = "Diagnostics" },
       { "<leader>fw", function() Snacks.picker.grep_word() end, mode = { "n", "x" }, desc = "Grep word/selection" },
       { "<leader>f/", function() Snacks.picker.lines() end, desc = "Search in buffer" },
-      { "<leader>fu", function() Snacks.picker.undo() end, desc = "Undo history" },
       { "<leader>fm", function() Snacks.picker.marks() end, desc = "Marks" },
       { "<leader>fj", function() Snacks.picker.jumps() end, desc = "Jumps" },
       { '<leader>f"', function() Snacks.picker.registers() end, desc = "Registers" },
-      { "<leader>fq", function() Snacks.picker.qflist() end, desc = "Quickfix" },
       { "<leader>fR", function() Snacks.picker.resume() end, desc = "Resume last search" },
       { "<leader>fn", function() Snacks.picker.files({ cwd = vim.fn.stdpath("config") }) end, desc = "Neovim config" },
       { "<leader>fp", function() Snacks.picker.projects() end, desc = "Projects" },
       { "<leader>uC", function() Snacks.picker.colorschemes() end, desc = "Colorschemes" },
       { "<leader>/", function() Snacks.picker.grep() end, desc = "Live grep" },
-      { "<leader>bb", function() Snacks.picker.buffers() end, desc = "Buffers" },
       { "<leader>ss", function() Snacks.picker.lsp_symbols() end, desc = "Document symbols" },
       { "<leader>sw", function() Snacks.picker.lsp_workspace_symbols() end, desc = "Workspace symbols" },
       { "<leader>gs", function() Snacks.picker.git_status() end, desc = "Git status" },
       { "<leader>gc", function() Snacks.picker.git_log() end, desc = "Git commits" },
-      { "<leader>gf", function() Snacks.picker.git_log_file() end, desc = "File commits" },
       { "<leader>gb", function() Snacks.picker.git_branches() end, desc = "Git branches" },
     },
   },
@@ -227,27 +220,6 @@ return {
     },
   },
 
-  -- symbols outline + statusline breadcrumbs
-  {
-    "stevearc/aerial.nvim",
-    event = "LspAttach",
-    dependencies = { "nvim-treesitter/nvim-treesitter", "nvim-tree/nvim-web-devicons" },
-    keys = {
-      { "<leader>so", "<cmd>AerialToggle<CR>", desc = "Symbols outline" },
-      { "<leader>sn", "<cmd>AerialNext<CR>", desc = "Next symbol" },
-      { "<leader>sp", "<cmd>AerialPrev<CR>", desc = "Prev symbol" },
-    },
-    opts = {
-      attach_mode = "global",
-      layout = { max_width = { 40 }, min_width = 30 },
-      backends = { "lsp", "treesitter" },
-      show_guides = true,
-      filter_kind = false,
-      highlight_on_hover = true,
-      autojump = true,
-    },
-  },
-
   -- TODO/FIXME/HACK/NOTE highlighting
   {
     "folke/todo-comments.nvim",
@@ -257,7 +229,6 @@ return {
     keys = {
       { "]t", function() require("todo-comments").jump_next() end, desc = "Next TODO" },
       { "[t", function() require("todo-comments").jump_prev() end, desc = "Prev TODO" },
-      { "<leader>ft", function() Snacks.picker.todo_comments() end, desc = "TODOs" },
       { "<leader>xt", "<cmd>Trouble todo toggle<CR>", desc = "TODOs (Trouble)" },
     },
   },
@@ -270,9 +241,9 @@ return {
     keys = {
       { "<leader>xx", "<cmd>Trouble diagnostics toggle<CR>", desc = "Workspace diagnostics" },
       { "<leader>xX", "<cmd>Trouble diagnostics toggle filter.buf=0<CR>", desc = "Buffer diagnostics" },
-      { "<leader>xs", "<cmd>Trouble symbols toggle<CR>", desc = "Symbols" },
+      { "<leader>so", "<cmd>Trouble symbols toggle focus=true<CR>", desc = "Symbols outline" },
       { "<leader>xl", "<cmd>Trouble lsp toggle win.position=right<CR>", desc = "LSP defs/refs" },
-      { "<leader>xQ", "<cmd>Trouble qflist toggle<CR>", desc = "Quickfix (Trouble)" },
+      { "<leader>xq", "<cmd>Trouble qflist toggle<CR>", desc = "Quickfix list" },
     },
   },
 
@@ -297,6 +268,18 @@ return {
           local persistence = require("persistence")
           if vim.uv.fs_stat(persistence.current()) then
             persistence.load()
+            -- lspconfig lazy-loads mid-restore and its vim.lsp.enable re-fires FileType, which
+            -- marks did_filetype() for the rest of VimEnter, so `setf` no-ops on restored files.
+            -- Detect again once we're out of the autocmd (gives them treesitter + LSP).
+            vim.schedule(function()
+              for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+                if vim.api.nvim_buf_is_loaded(buf) and vim.bo[buf].buftype == "" and vim.bo[buf].filetype == "" then
+                  vim.api.nvim_buf_call(buf, function()
+                    vim.cmd("filetype detect")
+                  end)
+                end
+              end
+            end)
           end
         end,
       })
@@ -309,18 +292,67 @@ return {
     },
   },
 
-  -- seamless <C-h/j/k/l> between nvim splits and tmux panes
+  -- seamless <C-h/j/k/l> between nvim splits and tmux panes; <M-arrows> resize either.
+  -- Not lazy: it sets tmux's @pane-is-vim on startup, which tmux.conf keys off.
   {
-    "christoomey/vim-tmux-navigator",
-    cmd = { "TmuxNavigateLeft", "TmuxNavigateDown", "TmuxNavigateUp", "TmuxNavigateRight", "TmuxNavigatePrevious" },
+    "mrjones2014/smart-splits.nvim",
+    lazy = false,
+    opts = { at_edge = "stop" },
     keys = {
-      { "<C-h>", "<cmd>TmuxNavigateLeft<CR>" },
-      { "<C-j>", "<cmd>TmuxNavigateDown<CR>" },
-      { "<C-k>", "<cmd>TmuxNavigateUp<CR>" },
-      { "<C-l>", "<cmd>TmuxNavigateRight<CR>" },
-      { "<C-\\>", "<cmd>TmuxNavigatePrevious<CR>" },
+      { "<C-h>", function() require("smart-splits").move_cursor_left() end, desc = "Window left" },
+      { "<C-j>", function() require("smart-splits").move_cursor_down() end, desc = "Window down" },
+      { "<C-k>", function() require("smart-splits").move_cursor_up() end, desc = "Window up" },
+      { "<C-l>", function() require("smart-splits").move_cursor_right() end, desc = "Window right" },
+      { "<C-\\>", function() require("smart-splits").move_cursor_previous() end, desc = "Previous window" },
+      { "<M-Left>", function() require("smart-splits").resize_left() end, desc = "Resize left" },
+      { "<M-Down>", function() require("smart-splits").resize_down() end, desc = "Resize down" },
+      { "<M-Up>", function() require("smart-splits").resize_up() end, desc = "Resize up" },
+      { "<M-Right>", function() require("smart-splits").resize_right() end, desc = "Resize right" },
     },
   },
 
-  { "ThePrimeagen/vim-be-good", cmd = "VimBeGood" },
+  -- move by syntax node: <M-h/l> parent/child, <M-j/k> next/prev sibling; <M-H/J/K/L> swaps
+  {
+    "aaronik/treewalker.nvim",
+    cmd = "Treewalker",
+    opts = {},
+    keys = {
+      { "<M-h>", "<cmd>Treewalker Left<CR>", mode = { "n", "v" }, desc = "Parent node" },
+      { "<M-j>", "<cmd>Treewalker Down<CR>", mode = { "n", "v" }, desc = "Next sibling node" },
+      { "<M-k>", "<cmd>Treewalker Up<CR>", mode = { "n", "v" }, desc = "Prev sibling node" },
+      { "<M-l>", "<cmd>Treewalker Right<CR>", mode = { "n", "v" }, desc = "Child node" },
+      { "<M-H>", "<cmd>Treewalker SwapLeft<CR>", desc = "Swap node left" },
+      { "<M-J>", "<cmd>Treewalker SwapDown<CR>", desc = "Swap node down" },
+      { "<M-K>", "<cmd>Treewalker SwapUp<CR>", desc = "Swap node up" },
+      { "<M-L>", "<cmd>Treewalker SwapRight<CR>", desc = "Swap node right" },
+    },
+  },
+
+  -- refactors as operators (take a motion in normal mode, or the selection)
+  {
+    "ThePrimeagen/refactoring.nvim",
+    dependencies = { "lewis6991/async.nvim" }, -- only needed on nvim 0.12
+    cmd = "Refactor",
+    keys = {
+      { "<leader>ce", function() return require("refactoring").extract_func() end, mode = { "n", "x" }, expr = true, desc = "Extract function" },
+      { "<leader>cv", function() return require("refactoring").extract_var() end, mode = { "n", "x" }, expr = true, desc = "Extract variable" },
+      { "<leader>cV", function() return require("refactoring").inline_var() end, mode = { "n", "x" }, expr = true, desc = "Inline variable" },
+      { "<leader>cx", function() require("refactoring").select_refactor() end, mode = { "n", "x" }, desc = "Refactor menu" },
+      { "<leader>cp", function() return require("refactoring.debug").print_var({ output_location = "below" }) .. "iw" end, expr = true, desc = "Debug print variable" },
+      { "<leader>cp", function() return require("refactoring.debug").print_var({ output_location = "below" }) end, mode = "x", expr = true, desc = "Debug print selection" },
+      -- whole buffer: jump to top, then run the operator to the last line
+      { "<leader>cP", function() return "gg" .. require("refactoring.debug").cleanup({ restore_view = true }) .. "G" end, expr = true, desc = "Remove debug prints" },
+    },
+  },
+
+  -- habit trainer: blocks jjjj/llll-style repeats and hints the better motion (<leader>uk toggles)
+  {
+    "m4xshen/hardtime.nvim",
+    event = "VeryLazy",
+    dependencies = { "MunifTanjim/nui.nvim" },
+    opts = { disable_mouse = false },
+    keys = {
+      { "<leader>uk", "<cmd>Hardtime toggle<CR>", desc = "Toggle hardtime (key habits)" },
+    },
+  },
 }

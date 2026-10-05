@@ -1,12 +1,3 @@
--- blink runs keymaps as expressions, so tabout is fed as a key afterwards
-local function tabout(plug)
-  require("tabout")
-  vim.schedule(function()
-    vim.api.nvim_feedkeys(vim.keycode(plug), "m", false)
-  end)
-  return true
-end
-
 return {
   {
     "saghen/blink.cmp",
@@ -16,22 +7,8 @@ return {
     opts = {
       keymap = {
         preset = "enter", -- <CR> accept, <C-space> open, <C-e> close, <C-n>/<C-p> select
-        ["<Tab>"] = {
-          "select_next",
-          "snippet_forward",
-          function() -- jump out of brackets/quotes (or insert a tab)
-            return tabout("<Plug>(Tabout)")
-          end,
-          "fallback",
-        },
-        ["<S-Tab>"] = {
-          "select_prev",
-          "snippet_backward",
-          function()
-            return tabout("<Plug>(TaboutBack)")
-          end,
-          "fallback",
-        },
+        ["<Tab>"] = { "select_next", "snippet_forward", "fallback" },
+        ["<S-Tab>"] = { "select_prev", "snippet_backward", "fallback" },
         ["<C-k>"] = { "show_signature", "hide_signature", "fallback" },
       },
       appearance = { nerd_font_variant = "mono" },
@@ -65,26 +42,6 @@ return {
         completion = { menu = { auto_show = true } },
       },
       fuzzy = { implementation = "prefer_rust_with_warning" },
-    },
-  },
-  {
-    "abecodes/tabout.nvim",
-    lazy = true,
-    opts = {
-      tabkey = "", -- driven from blink's <Tab> above
-      backwards_tabkey = "",
-      act_as_tab = true,
-      completion = false,
-      tabouts = {
-        { open = "'", close = "'" },
-        { open = '"', close = '"' },
-        { open = "`", close = "`" },
-        { open = "(", close = ")" },
-        { open = "[", close = "]" },
-        { open = "{", close = "}" },
-        { open = "<", close = ">" },
-      },
-      ignore_beginning = true,
     },
   },
   {
