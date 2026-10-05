@@ -154,15 +154,10 @@ return {
     },
     keys = {
       { "<leader>gg", function() Snacks.lazygit() end, desc = "LazyGit" },
-      { "<leader>go", function() Snacks.gitbrowse() end, mode = { "n", "v" }, desc = "Open in browser" },
       { "<C-/>", function() Snacks.terminal() end, mode = { "n", "t" }, desc = "Toggle terminal" },
       { "<C-_>", function() Snacks.terminal() end, mode = { "n", "t" }, desc = "which_key_ignore" },
       { "<leader>bd", function() Snacks.bufdelete() end, desc = "Delete buffer" },
-      { "<leader>bo", function() Snacks.bufdelete.other() end, desc = "Delete other buffers" },
       { "<leader>br", function() Snacks.rename.rename_file() end, desc = "Rename file" },
-      { "<leader>uN", function() Snacks.picker.notifications() end, desc = "Notification history" },
-      { "<leader>un", function() Snacks.notifier.hide() end, desc = "Dismiss notifications" },
-      { "<leader>uz", function() Snacks.zen() end, desc = "Zen mode" },
       { "]]", function() Snacks.words.jump(vim.v.count1) end, desc = "Next reference" },
       { "[[", function() Snacks.words.jump(-vim.v.count1) end, desc = "Prev reference" },
     },
@@ -171,13 +166,8 @@ return {
         pattern = "VeryLazy",
         callback = function()
           local toggle = Snacks.toggle
-          toggle.option("wrap", { name = "Wrap" }):map("<leader>uw")
-          toggle.option("spell", { name = "Spelling" }):map("<leader>us")
-          toggle.option("relativenumber", { name = "Relative number" }):map("<leader>ur")
           toggle.diagnostics():map("<leader>ud")
           toggle.inlay_hints():map("<leader>uh")
-          toggle.treesitter():map("<leader>uT")
-          toggle.indent():map("<leader>ui")
           toggle
             .new({
               id = "inline_diagnostics",

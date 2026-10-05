@@ -74,22 +74,13 @@ return {
           map("gy", pick.lsp_type_definitions, "Go to type definition")
           map("gr", pick.lsp_references, "References")
           map("gI", pick.lsp_implementations, "Go to implementation")
-          map("<leader>ci", pick.lsp_incoming_calls, "Incoming calls")
-          map("<leader>co", pick.lsp_outgoing_calls, "Outgoing calls")
           map("<leader>ca", vim.lsp.buf.code_action, "Code action", { "n", "v" })
           map("<leader>cr", vim.lsp.buf.rename, "Rename symbol")
-          map("<leader>cl", "<cmd>checkhealth vim.lsp<CR>", "LSP info")
-          map("<leader>cL", "<cmd>lsp restart<CR>", "Restart LSP")
 
           -- inlay hints are off by default to keep code clean; <leader>uh toggles them
           if client and client.name == "clangd" then
             map("<leader>ch", "<cmd>LspClangdSwitchSourceHeader<CR>", "Switch source/header")
             -- clangd_extensions (lang/c.lua)
-            map("<leader>ct", "<cmd>ClangdTypeHierarchy<CR>", "Type hierarchy")
-            map("<leader>cy", "<cmd>ClangdSymbolInfo<CR>", "Symbol info")
-            map("<leader>cm", "<cmd>ClangdMemoryUsage<CR>", "clangd memory usage")
-            map("<leader>cA", "<cmd>ClangdAST<CR>", "AST of line")
-            map("<leader>cA", ":ClangdAST<CR>", "AST of selection", "x")
           end
         end,
       })

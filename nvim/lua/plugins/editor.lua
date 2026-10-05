@@ -87,27 +87,12 @@ return {
         desc = "Action palette",
       },
       { "<leader>ff", function() Snacks.picker.files() end, desc = "Files" },
-      { "<leader>fg", function() Snacks.picker.git_files() end, desc = "Git files" },
       { "<leader>fr", function() Snacks.picker.recent({ filter = { cwd = true } }) end, desc = "Recent files" },
       { "<leader>fb", function() Snacks.picker.buffers() end, desc = "Buffers" },
-      { "<leader>fh", function() Snacks.picker.help() end, desc = "Help" },
       { "<leader>fk", function() Snacks.picker.keymaps() end, desc = "Keymaps" },
-      { "<leader>fc", function() Snacks.picker.commands() end, desc = "Commands" },
       { "<leader>fw", function() Snacks.picker.grep_word() end, mode = { "n", "x" }, desc = "Grep word/selection" },
-      { "<leader>f/", function() Snacks.picker.lines() end, desc = "Search in buffer" },
-      { "<leader>fm", function() Snacks.picker.marks() end, desc = "Marks" },
-      { "<leader>fj", function() Snacks.picker.jumps() end, desc = "Jumps" },
-      { '<leader>f"', function() Snacks.picker.registers() end, desc = "Registers" },
-      { "<leader>fR", function() Snacks.picker.resume() end, desc = "Resume last search" },
-      { "<leader>fn", function() Snacks.picker.files({ cwd = vim.fn.stdpath("config") }) end, desc = "Neovim config" },
-      { "<leader>fp", function() Snacks.picker.projects() end, desc = "Projects" },
-      { "<leader>uC", function() Snacks.picker.colorschemes() end, desc = "Colorschemes" },
       { "<leader>/", function() Snacks.picker.grep() end, desc = "Live grep" },
       { "<leader>ss", function() Snacks.picker.lsp_symbols() end, desc = "Document symbols" },
-      { "<leader>sw", function() Snacks.picker.lsp_workspace_symbols() end, desc = "Workspace symbols" },
-      { "<leader>gs", function() Snacks.picker.git_status() end, desc = "Git status" },
-      { "<leader>gc", function() Snacks.picker.git_log() end, desc = "Git commits" },
-      { "<leader>gb", function() Snacks.picker.git_branches() end, desc = "Git branches" },
     },
   },
 
@@ -240,9 +225,7 @@ return {
     opts = { focus = true, auto_preview = false },
     keys = {
       { "<leader>xx", "<cmd>Trouble diagnostics toggle<CR>", desc = "Workspace diagnostics" },
-      { "<leader>xX", "<cmd>Trouble diagnostics toggle filter.buf=0<CR>", desc = "Buffer diagnostics" },
       { "<leader>so", "<cmd>Trouble symbols toggle focus=true<CR>", desc = "Symbols outline" },
-      { "<leader>xl", "<cmd>Trouble lsp toggle win.position=right<CR>", desc = "LSP defs/refs" },
       { "<leader>xq", "<cmd>Trouble qflist toggle<CR>", desc = "Quickfix list" },
     },
   },
@@ -286,9 +269,6 @@ return {
     end,
     keys = {
       { "<leader>qs", function() require("persistence").load() end, desc = "Restore session (cwd)" },
-      { "<leader>qS", function() require("persistence").select() end, desc = "Select session" },
-      { "<leader>ql", function() require("persistence").load({ last = true }) end, desc = "Restore last session" },
-      { "<leader>qd", function() require("persistence").stop() end, desc = "Don't save this session" },
     },
   },
 
@@ -334,14 +314,7 @@ return {
     dependencies = { "lewis6991/async.nvim" }, -- only needed on nvim 0.12
     cmd = "Refactor",
     keys = {
-      { "<leader>ce", function() return require("refactoring").extract_func() end, mode = { "n", "x" }, expr = true, desc = "Extract function" },
-      { "<leader>cv", function() return require("refactoring").extract_var() end, mode = { "n", "x" }, expr = true, desc = "Extract variable" },
-      { "<leader>cV", function() return require("refactoring").inline_var() end, mode = { "n", "x" }, expr = true, desc = "Inline variable" },
       { "<leader>cx", function() require("refactoring").select_refactor() end, mode = { "n", "x" }, desc = "Refactor menu" },
-      { "<leader>cp", function() return require("refactoring.debug").print_var({ output_location = "below" }) .. "iw" end, expr = true, desc = "Debug print variable" },
-      { "<leader>cp", function() return require("refactoring.debug").print_var({ output_location = "below" }) end, mode = "x", expr = true, desc = "Debug print selection" },
-      -- whole buffer: jump to top, then run the operator to the last line
-      { "<leader>cP", function() return "gg" .. require("refactoring.debug").cleanup({ restore_view = true }) .. "G" end, expr = true, desc = "Remove debug prints" },
     },
   },
 

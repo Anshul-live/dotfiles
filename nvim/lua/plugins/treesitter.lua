@@ -100,7 +100,6 @@ return {
     event = "VeryLazy", -- after the first screen; it highlights its own window on load
     opts = { max_lines = 3, multiline_threshold = 1 },
     keys = {
-      { "<leader>ut", "<cmd>TSContext toggle<CR>", desc = "Toggle sticky context" },
       {
         "[x",
         function()

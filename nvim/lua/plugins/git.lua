@@ -68,7 +68,6 @@ return {
     keys = {
       { "<leader>gd", "<cmd>DiffviewOpen<CR>", desc = "Diff view (working tree)" },
       { "<leader>gh", "<cmd>DiffviewFileHistory %<CR>", desc = "File history" },
-      { "<leader>gq", "<cmd>DiffviewClose<CR>", desc = "Close diff view" },
     },
     opts = { enhanced_diff_hl = true },
   },

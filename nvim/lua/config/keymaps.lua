@@ -36,8 +36,6 @@ end, { desc = "Run file / project" })
 map("n", "<leader>R", function()
   require("config.run").run(true)
 end, { desc = "Run with arguments" })
-map("n", "<leader>w", "<cmd>w<CR>", { desc = "Save" })
-map("n", "<leader>bn", "<cmd>enew<CR>", { desc = "New buffer" })
 
 -- windows (<C-h/j/k/l> move and <M-arrows> resize via smart-splits, plugins/editor.lua)
 map("n", "<leader>|", "<cmd>vsplit<CR>", { desc = "Split right" })
@@ -60,7 +58,6 @@ for _, lhs in ipairs({ "grn", "gra", "grr", "gri", "grt", "grx" }) do
 end
 
 -- diagnostics ([d / ]d are Neovim defaults)
-map("n", "<leader>e", vim.diagnostic.open_float, { desc = "Line diagnostics" })
 map("n", "]e", function()
   vim.diagnostic.jump({ count = 1, severity = vim.diagnostic.severity.ERROR })
 end, { desc = "Next error" })
