@@ -1,15 +1,59 @@
 -- Dev tools that live next to the code: HTTP requests, databases, Docker, scratch playgrounds.
--- All of them are under <leader>o ("open").
+-- HTTP, database and Docker are modes (config/modes.lua): <leader>oh / ob / od, or <leader>m.
+
+-- Docker mode: lazydocker in a float, compose commands in a bottom terminal.
+-- Defined here, not in a spec's init: snacks.nvim's init lives in plugins/ui.lua
+-- and lazy.nvim keeps only one init per plugin.
+local function docker(cmd)
+  return function()
+    Snacks.terminal(cmd, { interactive = false, win = { position = "bottom", height = 0.3 } })
+  end
+end
+require("config.modes").define("docker", {
+  key = "<leader>od",
+  desc = "lazydocker, compose up/down/logs/build",
+  keys = {
+    {
+      "o",
+      function()
+        Snacks.terminal("lazydocker", { win = { position = "float", width = 0.9, height = 0.9, border = "single" } })
+      end,
+      "lazydocker",
+    },
+    { "p", docker("docker ps"), "containers" },
+    { "u", docker("docker compose up -d"), "compose up" },
+    { "d", docker("docker compose down"), "compose down" },
+    { "r", docker("docker compose restart"), "compose restart" },
+    { "b", docker("docker compose build"), "compose build" },
+    { "l", docker("docker compose logs -f --tail=100"), "compose logs" },
+  },
+})
+
 return {
   -- REST client: requests in plain-text *.hurl files (free hurl CLI, also works as API tests).
-  -- In a .hurl file: <CR> sends the request under the cursor, <leader>R sends all.
+  -- In a .hurl file <CR> (or <leader>r) sends the request under the cursor; http mode has the rest.
   {
     "jellydn/hurl.nvim",
     dependencies = { "MunifTanjim/nui.nvim", "nvim-lua/plenary.nvim" },
     ft = "hurl",
-    keys = {
-      { "<leader>oh", "<cmd>edit requests.hurl<CR>", desc = "HTTP requests (requests.hurl)" },
-    },
+    init = function()
+      require("config.modes").define("http", {
+        key = "<leader>oh",
+        desc = "send requests from requests.hurl",
+        keys = {
+          { "s", "<cmd>HurlRunnerAt<CR>", "send request" },
+          { "a", "<cmd>HurlRunner<CR>", "send all" },
+          { "v", "<cmd>HurlVerbose<CR>", "send verbose" },
+          { "m", "<cmd>HurlToggleMode<CR>", "split / popup" },
+          { "o", "<cmd>edit requests.hurl<CR>", "requests.hurl" },
+        },
+        on_enter = function()
+          if vim.bo.filetype ~= "hurl" then
+            vim.cmd.edit("requests.hurl")
+          end
+        end,
+      })
+    end,
     opts = {
       mode = "split",
       show_notification = false,
@@ -25,9 +69,6 @@ return {
         end
         map("<CR>", "<cmd>HurlRunnerAt<CR>", "Send request")
         map("<leader>r", "<cmd>HurlRunnerAt<CR>", "Send request")
-        map("<leader>R", "<cmd>HurlRunner<CR>", "Send all requests")
-        map("<leader>ov", "<cmd>HurlVerbose<CR>", "Send verbose")
-        map("<leader>om", "<cmd>HurlToggleMode<CR>", "Split / popup")
       end
       vim.api.nvim_create_autocmd("FileType", {
         pattern = "hurl",
@@ -49,10 +90,21 @@ return {
       { "kristijanhusak/vim-dadbod-completion", ft = { "sql", "mysql", "plsql" }, lazy = true },
     },
     cmd = { "DBUI", "DBUIToggle", "DBUIAddConnection", "DBUIFindBuffer" },
-    keys = {
-      { "<leader>ob", "<cmd>DBUIToggle<CR>", desc = "Database" },
-    },
     init = function()
+      require("config.modes").define("db", {
+        key = "<leader>ob",
+        desc = "database sidebar, run and save queries",
+        keys = {
+          { "r", "<Plug>(DBUI_ExecuteQuery)", "run query", mode = { "n", "x" } },
+          { "s", "<Plug>(DBUI_SaveQuery)", "save query" },
+          { "u", "<cmd>DBUIToggle<CR>", "sidebar" },
+          { "a", "<cmd>DBUIAddConnection<CR>", "add connection" },
+          { "f", "<cmd>DBUIFindBuffer<CR>", "attach buffer to db" },
+        },
+        on_enter = function()
+          vim.cmd("DBUI")
+        end,
+      })
       vim.g.db_ui_use_nerd_fonts = 1
       vim.g.db_ui_show_database_icon = 1
       vim.g.db_ui_execute_on_save = 0 -- run with <leader>r instead (below)
@@ -70,18 +122,10 @@ return {
     end,
   },
 
-  -- Docker: containers, logs, restarts in a float
+  -- scratch playgrounds: throwaway buffer for the current filetype; <leader>r runs it
   {
     "folke/snacks.nvim",
     keys = {
-      {
-        "<leader>od",
-        function()
-          Snacks.terminal("lazydocker", { win = { position = "float", width = 0.9, height = 0.9, border = "single" } })
-        end,
-        desc = "Docker",
-      },
-      -- scratch playgrounds: throwaway buffer for the current filetype; <leader>r runs it
       { "<leader>os", function() Snacks.scratch() end, desc = "Scratch (this filetype)" },
       { "<leader>oS", function() Snacks.scratch.select() end, desc = "Open a scratch" },
     },

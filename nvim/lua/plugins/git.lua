@@ -2,6 +2,50 @@ return {
   {
     "lewis6991/gitsigns.nvim",
     event = { "BufReadPre", "BufNewFile" },
+    init = function()
+      local function gs()
+        return require("gitsigns")
+      end
+      local function selection()
+        return { vim.fn.line("."), vim.fn.line("v") }
+      end
+      local function hunk(dir)
+        return function()
+          if vim.wo.diff then
+            vim.cmd.normal({ dir == "next" and "]c" or "[c", bang = true })
+          else
+            gs().nav_hunk(dir)
+          end
+        end
+      end
+      require("config.modes").define("git", {
+        key = "<leader>g",
+        desc = "hunks, staging, blame, diffs, lazygit",
+        keys = {
+          { "n", hunk("next"), "next hunk" },
+          { "N", hunk("prev"), "prev hunk" },
+          { "s", function() gs().stage_hunk() end, "stage / unstage hunk" },
+          { "s", function() gs().stage_hunk(selection()) end, "stage selection", mode = "x" },
+          { "r", function() gs().reset_hunk() end, "reset hunk" },
+          { "r", function() gs().reset_hunk(selection()) end, "reset selection", mode = "x" },
+          { "S", function() gs().stage_buffer() end, "stage file" },
+          { "R", function() gs().reset_buffer() end, "reset file" },
+          { "p", function() gs().preview_hunk() end, "preview hunk" },
+          { "b", function() gs().blame_line({ full = true }) end, "blame line" },
+          { "B", function() gs().blame() end, "blame file" },
+          { "d", function() gs().diffthis() end, "diff this file" },
+          {
+            "D",
+            function()
+              vim.cmd(require("diffview.lib").get_current_view() and "DiffviewClose" or "DiffviewOpen")
+            end,
+            "repo diff view",
+          },
+          { "h", "<cmd>DiffviewFileHistory %<CR>", "file history" },
+          { "L", function() Snacks.lazygit() end, "lazygit" },
+        },
+      })
+    end,
     opts = {
       signs = {
         add = { text = "▎" },
@@ -40,23 +84,6 @@ return {
           end
         end, "Prev hunk")
 
-        map("n", "<leader>hp", gs.preview_hunk, "Preview hunk")
-        map("n", "<leader>hi", gs.preview_hunk_inline, "Preview hunk inline")
-        map("n", "<leader>hs", gs.stage_hunk, "Stage/unstage hunk")
-        map("n", "<leader>hr", gs.reset_hunk, "Reset hunk")
-        map("v", "<leader>hs", function()
-          gs.stage_hunk({ vim.fn.line("."), vim.fn.line("v") })
-        end, "Stage selection")
-        map("v", "<leader>hr", function()
-          gs.reset_hunk({ vim.fn.line("."), vim.fn.line("v") })
-        end, "Reset selection")
-        map("n", "<leader>hS", gs.stage_buffer, "Stage buffer")
-        map("n", "<leader>hR", gs.reset_buffer, "Reset buffer")
-        map("n", "<leader>hb", function()
-          gs.blame_line({ full = true })
-        end, "Blame line")
-        map("n", "<leader>hB", gs.blame, "Blame file")
-        map("n", "<leader>hd", gs.diffthis, "Diff this")
         map("n", "<leader>ub", gs.toggle_current_line_blame, "Toggle inline blame")
         map({ "o", "x" }, "ih", gs.select_hunk, "Inside hunk")
       end,
@@ -65,10 +92,6 @@ return {
   {
     "sindrets/diffview.nvim",
     cmd = { "DiffviewOpen", "DiffviewFileHistory" },
-    keys = {
-      { "<leader>gd", "<cmd>DiffviewOpen<CR>", desc = "Diff view (working tree)" },
-      { "<leader>gh", "<cmd>DiffviewFileHistory %<CR>", desc = "File history" },
-    },
     opts = { enhanced_diff_hl = true },
   },
 }

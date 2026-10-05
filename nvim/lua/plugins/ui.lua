@@ -54,14 +54,16 @@ return {
       require("config.statusline").setup()
 
       -- mode feedback where your eyes are: the cursor's line number takes the mode color
+      -- (an extra mode like debug/test, config/modes.lua, colors normal mode)
       local p = require("config.palette")
       local mode_colors = { n = p.normal, i = p.insert, v = p.visual, V = p.visual, ["\22"] = p.visual, s = p.visual, R = p.replace, c = p.command, t = p.terminal }
-      vim.api.nvim_create_autocmd({ "ModeChanged", "ColorScheme" }, {
-        callback = function()
-          local color = mode_colors[vim.fn.mode():sub(1, 1)] or p.normal
-          vim.api.nvim_set_hl(0, "CursorLineNr", { fg = color, bold = true })
-        end,
-      })
+      local function line_nr_color()
+        local m = vim.fn.mode():sub(1, 1)
+        local color = (m == "n" and require("config.modes").color()) or mode_colors[m] or p.normal
+        vim.api.nvim_set_hl(0, "CursorLineNr", { fg = color, bold = true })
+      end
+      vim.api.nvim_create_autocmd({ "ModeChanged", "ColorScheme" }, { callback = line_nr_color })
+      vim.api.nvim_create_autocmd("User", { pattern = "ModeLayerChanged", callback = line_nr_color })
     end,
   },
 
@@ -153,7 +155,6 @@ return {
       },
     },
     keys = {
-      { "<leader>gg", function() Snacks.lazygit() end, desc = "LazyGit" },
       { "<C-/>", function() Snacks.terminal() end, mode = { "n", "t" }, desc = "Toggle terminal" },
       { "<C-_>", function() Snacks.terminal() end, mode = { "n", "t" }, desc = "which_key_ignore" },
       { "<leader>bd", function() Snacks.bufdelete() end, desc = "Delete buffer" },

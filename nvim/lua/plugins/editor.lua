@@ -20,18 +20,19 @@ return {
       layout = { width = { min = 24, max = 40 }, spacing = 3 },
       icons = { separator = "\u{f178}", group = "", rules = false },
       spec = {
-        { "<leader>a", group = "ai", icon = "\u{f086} ", mode = { "n", "v" } },
+        -- modes (config/modes.lua): <leader>m picks, these enter one directly
+        { "<leader>m", desc = "Pick a mode", icon = "\u{f0e7} " },
+        { "<leader>a", desc = "AI mode", icon = "\u{f086} " },
         { "<leader>b", group = "buffer", icon = "\u{f0db} " },
         { "<leader>c", group = "code", icon = "\u{f121} ", mode = { "n", "v" } },
-        { "<leader>d", group = "debug", icon = "\u{f188} " },
+        { "<leader>d", desc = "Debug mode", icon = "\u{f188} " },
         { "<leader>f", group = "find", icon = "\u{f002} " },
-        { "<leader>g", group = "git", icon = "\u{f1d3} " },
-        { "<leader>h", group = "hunks", icon = "\u{f126} ", mode = { "n", "v" } },
-        { "<leader>o", group = "open", icon = "\u{f0e7} " },
+        { "<leader>g", desc = "Git mode", icon = "\u{f1d3} " },
+        { "<leader>o", group = "tool modes", icon = "\u{f0ad} " },
         { "<leader>1", desc = "Pinned 1-4", icon = "\u{f08d} " },
         { "<leader>q", group = "session", icon = "\u{f0c7} " },
         { "<leader>s", group = "symbols", icon = "\u{f1b3} " },
-        { "<leader>t", group = "test", icon = "\u{f0c3} " },
+        { "<leader>t", desc = "Test mode", icon = "\u{f0c3} " },
         { "<leader>u", group = "toggle", icon = "\u{f205} " },
         { "<leader>x", group = "lists", icon = "\u{f03a} " },
         { "gs", group = "surround" },
@@ -73,8 +74,8 @@ return {
               end
               local prefix = item.item.lhs:match("^<Space>(%a)") or item.item.lhs:match("^ (%a)")
               item.group = ({
-                a = "ai", b = "buffer", c = "code", d = "debug", f = "find", g = "git", h = "git",
-                o = "open", q = "session", s = "symbols", t = "test", u = "toggle", x = "lists",
+                a = "ai", b = "buffer", c = "code", d = "debug", f = "find", g = "git",
+                o = "tools", q = "session", s = "symbols", t = "test", u = "toggle", x = "lists",
               })[prefix or ""] or ""
               item.text = item.group .. " " .. desc .. " " .. item.item.lhs
             end,
@@ -141,7 +142,7 @@ return {
     },
   },
 
-  -- pin up to 4 working files: <leader>m pins, <leader>1..4 jumps, <leader>M edits the list
+  -- pin up to 4 working files: <leader>p pins, <leader>1..4 jumps, <leader>P edits the list
   {
     "ThePrimeagen/harpoon",
     branch = "harpoon2",
@@ -150,7 +151,7 @@ return {
     keys = function()
       local keys = {
         {
-          "<leader>m",
+          "<leader>p",
           function()
             require("harpoon"):list():add()
             vim.notify("Pinned " .. vim.fn.expand("%:t"))
@@ -158,7 +159,7 @@ return {
           desc = "Pin file",
         },
         {
-          "<leader>M",
+          "<leader>P",
           function()
             local h = require("harpoon")
             h.ui:toggle_quick_menu(h:list(), { border = "single", title = " pinned ", title_pos = "center", ui_width_ratio = 0.4 })

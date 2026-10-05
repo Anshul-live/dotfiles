@@ -1,10 +1,53 @@
 -- Native statusline: only what you might act on, no plugin, no refresh timer.
--- Left:  file (+ modified dot)
+-- Left:  mode badge (NORMAL/INSERT/..., or an extra mode like DEBUG), file (+ modified dot)
 -- Right: macro recording, LSP progress / missing LSP, diagnostics, git changes, pinned files, branch
 local M = {}
 
 local function hl(group, text)
   return "%#" .. group .. "#" .. text .. "%*"
+end
+
+-- Vim's own modes, keyed by the first letter of mode(); colors are config.palette names
+local base_modes = {
+  n = { "NORMAL", "normal" },
+  i = { "INSERT", "insert" },
+  v = { "VISUAL", "visual" },
+  V = { "V-LINE", "visual" },
+  ["\22"] = { "V-BLOCK", "visual" },
+  s = { "SELECT", "visual" },
+  S = { "S-LINE", "visual" },
+  ["\19"] = { "S-BLOCK", "visual" },
+  R = { "REPLACE", "replace" },
+  c = { "COMMAND", "command" },
+  r = { "PROMPT", "command" },
+  ["!"] = { "SHELL", "terminal" },
+  t = { "TERMINAL", "terminal" },
+}
+
+-- badge highlight per palette color, created on first use (reset on :colorscheme)
+local badge_groups = {}
+local function badge(text, color)
+  local group = "StlMode_" .. color
+  if not badge_groups[group] then
+    local p = require("config.palette")
+    vim.api.nvim_set_hl(0, group, { fg = p.bg, bg = p[color] or p.normal, bold = true })
+    badge_groups[group] = true
+  end
+  return hl(group, " " .. text .. " ")
+end
+
+-- extra mode (config/modes.lua) replaces NORMAL; any other Vim mode shows next to it
+local function mode_badges()
+  local base = base_modes[vim.fn.mode():sub(1, 1)] or base_modes.n
+  local extra = require("config.modes").active()
+  if not extra then
+    return badge(base[1], base[2])
+  end
+  local out = badge(extra:upper(), extra)
+  if base[1] ~= "NORMAL" then
+    out = out .. " " .. badge(base[1], base[2])
+  end
+  return out
 end
 
 local function file()
@@ -110,7 +153,7 @@ function M.render()
       table.insert(right, part)
     end
   end
-  return " " .. file() .. "%=" .. table.concat(right, "   ") .. " "
+  return mode_badges() .. " " .. file() .. "%=" .. table.concat(right, "   ") .. " "
 end
 
 function M.setup()
@@ -124,10 +167,15 @@ function M.setup()
     vim.api.nvim_set_hl(0, "StlWarn", { fg = p.warn })
   end
   colors()
-  vim.api.nvim_create_autocmd("ColorScheme", { callback = colors })
+  vim.api.nvim_create_autocmd("ColorScheme", {
+    callback = function()
+      colors()
+      badge_groups = {}
+    end,
+  })
   vim.o.statusline = "%!v:lua.require'config.statusline'.render()"
   -- redraw only when these change (cursor moves already redraw it)
-  vim.api.nvim_create_autocmd({ "LspProgress", "LspAttach", "LspDetach", "DiagnosticChanged", "RecordingEnter", "RecordingLeave" }, {
+  vim.api.nvim_create_autocmd({ "ModeChanged", "LspProgress", "LspAttach", "LspDetach", "DiagnosticChanged", "RecordingEnter", "RecordingLeave" }, {
     callback = function()
       vim.cmd.redrawstatus()
     end,

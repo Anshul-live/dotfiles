@@ -19,6 +19,15 @@ return {
   command = c.warning,
   terminal = c.builtin,
 
+  -- extra modes (config/modes.lua): statusline badge, line number, cheat-sheet
+  debug = c.error,
+  test = c.plus,
+  git = c.warning,
+  ai = c.builtin,
+  db = c.parameter,
+  docker = c.hint,
+  http = c.constant,
+
   warn = c.warning,
   error = c.error,
 }

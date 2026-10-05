@@ -28,17 +28,25 @@ return {
       "nvim-treesitter/nvim-treesitter",
     },
     cmd = { "CodeCompanion", "CodeCompanionChat", "CodeCompanionActions", "CodeCompanionCmd" },
-    keys = {
-      { "<leader>aa", "<cmd>CodeCompanionChat Toggle<CR>", mode = { "n", "v" }, desc = "Toggle chat" },
-      { "<leader>an", "<cmd>CodeCompanionChat<CR>", mode = { "n", "v" }, desc = "New chat" },
-      { "<leader>ap", "<cmd>CodeCompanionActions<CR>", mode = { "n", "v" }, desc = "Actions palette" },
-      { "<leader>ai", ":CodeCompanion ", mode = { "n", "v" }, desc = "Inline prompt" },
-      { "<leader>ac", "<cmd>CodeCompanionChat Add<CR>", mode = "v", desc = "Add selection to chat" },
-      { "<leader>ar", ":CodeCompanion /review<CR>", mode = "v", desc = "Review selection" },
-      { "<leader>ae", ":CodeCompanion /explain<CR>", mode = "v", desc = "Explain selection" },
-      { "<leader>af", ":CodeCompanion /refactor<CR>", mode = "v", desc = "Fix / refactor selection" },
-      { "<leader>at", ":CodeCompanion /tests<CR>", mode = "v", desc = "Write tests for selection" },
-    },
+    init = function()
+      vim.cmd([[cab cc CodeCompanion]])
+      vim.cmd([[cab ccc CodeCompanionChat]])
+      require("config.modes").define("ai", {
+        key = "<leader>a",
+        desc = "chat, inline prompts, select code and ask about it",
+        keys = {
+          { "a", "<cmd>CodeCompanionChat Toggle<CR>", "toggle chat", mode = { "n", "x" } },
+          { "n", "<cmd>CodeCompanionChat<CR>", "new chat" },
+          { "p", "<cmd>CodeCompanionActions<CR>", "actions", mode = { "n", "x" } },
+          { "i", ":CodeCompanion ", "inline prompt", mode = { "n", "x" } },
+          { "c", "<cmd>CodeCompanionChat Add<CR>", "add selection", mode = "x" },
+          { "e", ":CodeCompanion /explain<CR>", "explain selection", mode = "x" },
+          { "r", ":CodeCompanion /review<CR>", "review selection", mode = "x" },
+          { "f", ":CodeCompanion /refactor<CR>", "fix selection", mode = "x" },
+          { "t", ":CodeCompanion /tests<CR>", "tests for selection", mode = "x" },
+        },
+      })
+    end,
     opts = {
       adapters = {
         http = {
@@ -112,9 +120,5 @@ invalid input and error handling, using the project's existing test framework.]]
         ),
       },
     },
-    init = function()
-      vim.cmd([[cab cc CodeCompanion]])
-      vim.cmd([[cab ccc CodeCompanionChat]])
-    end,
   },
 }
