@@ -183,7 +183,9 @@ c.url.searchengines = {
 
 c.auto_save.session = True  # tabs come back after quit/crash...
 c.session.lazy_restore = True  # ...but only load when visited
-c.input.insert_mode.auto_load = True  # pages that focus a field start in insert mode
+# pages that focus a field on load stay in normal mode: typing into a field is opt-in
+# (gi, i, or click / f on it), so your keys never get swallowed by a box you did not pick
+c.input.insert_mode.auto_load = False
 c.downloads.location.directory = '~/Downloads'
 c.downloads.location.prompt = False
 
