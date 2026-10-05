@@ -1,41 +1,21 @@
 #!/usr/bin/env bash
-
-SPACE_ICONS=("1" "2" "3" "4" "5" "6" "7" "8" "9" "10")
+# Workspace names as plain text: focused is bright, ones with windows are dim, empty ones hidden.
+# updates=on: hidden items would otherwise never get the event that shows them again.
 
 sketchybar --add event aerospace_workspace_change
 
-sketchybar --add item spacer.1 left \
-	--set spacer.1 \
-	background.drawing=off \
-	label.drawing=off \
-	icon.drawing=off \
-	width=10
-
-for i in {1..10}; do
+# same order as persistent-workspaces in aerospace.toml
+for i in T B N C V M 1 2 3; do
 	sketchybar --add item space.$i left \
 		--set space.$i \
-		icon="${SPACE_ICONS[$((i-1))]}" \
+		icon="$i" \
+		updates=on \
+		icon.padding_left=6 \
+		icon.padding_right=6 \
 		label.drawing=off \
-		icon.padding_left=8 \
-		icon.padding_right=8 \
-		background.padding_left=3 \
-		background.padding_right=3 \
-		background.corner_radius="$CORNER_RADIUS" \
-		background.height=20 \
-		background.color="$BAR_COLOR" \
-		background.border_width="$BORDER_WIDTH" \
-		background.border_color="$RED" \
 		click_script="aerospace workspace $i" \
 		script="$PLUGIN_DIR/space.sh" \
-		--subscribe space.$i aerospace_workspace_change
+		--subscribe space.$i aerospace_workspace_change front_app_switched
 done
-sketchybar --add bracket spaces '/space\..*/' \
-	--set spaces \
-	background.border_width="$BORDER_WIDTH" \
-	background.border_color="$RED" \
-	background.corner_radius="$CORNER_RADIUS" \
-	background.color="$BAR_COLOR" \
-	background.height=26 \
-	background.drawing=on
 
 sketchybar --trigger aerospace_workspace_change

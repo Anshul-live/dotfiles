@@ -1,30 +1,15 @@
 #!/usr/bin/env bash
+# Battery as plain text; turns red under 20%, "+" while charging.
 
-PERCENTAGE=$(pmset -g batt | grep -Eo "\d+%" | cut -d% -f1)
-CHARGING=$(pmset -g batt | grep 'AC Power')
+source "$HOME/.config/sketchybar/variables.sh"
 
-if [ "$PERCENTAGE" = "" ]; then
-	exit 0
-fi
+BATT="$(pmset -g batt)"
+PERCENTAGE="$(echo "$BATT" | grep -Eo "[0-9]+%" | cut -d% -f1)"
+[ -z "$PERCENTAGE" ] && exit 0
 
-case ${PERCENTAGE} in
-9[0-9] | 100)
-	ICON=""
-	;;
-[6-8][0-9])
-	ICON=""
-	;;
-[3-5][0-9])
-	ICON=""
-	;;
-[1-2][0-9])
-	ICON=""
-	;;
-*) ICON="" ;;
-esac
+COLOR="$COMMENT"
+[ "$PERCENTAGE" -lt 20 ] && COLOR="$RED"
+CHARGE=""
+echo "$BATT" | grep -q "AC Power" && CHARGE="+"
 
-if [ "$CHARGING" != "" ]; then
-	ICON=""
-fi
-
-sketchybar --set "$NAME" icon="$ICON" label="${PERCENTAGE}% "
+sketchybar --set "$NAME" label="${PERCENTAGE}%${CHARGE}" label.color="$COLOR"

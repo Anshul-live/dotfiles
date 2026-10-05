@@ -1,27 +1,32 @@
 # AeroSpace: tiling window manager. Linked to ~/.config/aerospace/aerospace.toml by install.sh.
 #
-# Same idea as the Neovim modes: one key enters WINDOW mode, then single keys act.
-# Everything sits on Ctrl+Alt so Alt stays free for Neovim (treewalker, resize).
+# Everything sits on Ctrl+Alt (one press, no mode) so Alt stays free for Neovim (treewalker, resize).
 #
-#   ctrl-alt-1..9      go to workspace            (works anywhere)
-#   ctrl-alt-tab       previous workspace
-#   ctrl-alt-space     enter WINDOW mode (sketchybar shows a badge):
-#     h j k l          focus left/down/up/right
-#     H J K L          move window
-#     ctrl-h/j/k/l     join with the neighbour (nest into a split)
-#     1..9             go to workspace
-#     shift-1..9       send window to workspace (and follow it)
-#     - =              shrink / grow
-#     f                fullscreen
-#     t                float <-> tile
-#     /                tiles: flip horizontal/vertical
-#     ,                accordion (stacked) layout
-#     r                reset the layout tree
-#     x                close window
-#     c                reload this config
-#     esc / enter      back to normal
+# Workspaces are letters for what lives there; apps land on theirs when they open:
+#   T terminal (Ghostty: tmux + nvim, Claude inside nvim)   B browser (Safari)
+#   N notes (Obsidian)   C comms (Mail, Calendar, Messages, WhatsApp)
+#   V video (DaVinci Resolve)   M music (Spotify)   1 2 3 spare, for anything else
 #
-# Workspaces: 1 terminal · 2 browser · 3 notes · 9 music (apps land there on launch).
+#   ctrl-alt-t b n c v m 1 2 3        go to workspace
+#   ctrl-alt-shift-t b n c v m 1 2 3  send window there (and follow it)
+#   ctrl-alt-tab                      previous workspace
+#   ctrl-alt-h j k l                  focus left/down/up/right
+#   ctrl-alt-shift-h j k l            move window
+#   ctrl-alt-f                        fullscreen
+#   ctrl-alt-/                        side-by-side tiles (the default; flips horizontal/vertical)
+#   ctrl-alt-,                        full-screen stack (h/l flips between windows)
+#   ctrl-alt-- / =                    shrink / grow
+#
+#   ctrl-alt-space    WINDOW mode (sketchybar shows a cheat-sheet), then one key:
+#     d s v m         setups: dev / study / video / morning comms (see setup.sh)
+#     h j k l, H J K L, - =, f, /, ,   same as above without Ctrl+Alt (handy for repeated resizing)
+#     ctrl-h/j/k/l    join with the neighbour (nest into a split)
+#     t               float <-> tile
+#     r               reset the layout tree
+#     x               close window
+#     c               reload this config
+#     esc / enter     back to normal
+#
 # sketchybar and borders run as brew services, not from here.
 
 config-version = 2
@@ -31,15 +36,16 @@ start-at-login = true
 enable-normalization-flatten-containers = true
 enable-normalization-opposite-orientation-for-nested-containers = true
 
-accordion-padding = 30
+# tiles: one window fills the screen, more split it side by side; ctrl-alt-, stacks them instead
+accordion-padding = 0
 default-root-container-layout = 'tiles'
 default-root-container-orientation = 'auto'
 
 on-focused-monitor-changed = ['move-mouse monitor-lazy-center']
 automatically-unhide-macos-hidden-apps = false
 
-# keep 1-9 around even when empty, so the bar always shows them
-persistent-workspaces = ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
+# the bar hides empty ones anyway; this keeps the order fixed
+persistent-workspaces = ["T", "B", "N", "C", "V", "M", "1", "2", "3"]
 
 # sketchybar: highlight the focused workspace, show the WINDOW mode badge
 # (full path: commands run from AeroSpace don't have Homebrew on their PATH)
@@ -53,26 +59,54 @@ on-mode-changed = ['exec-and-forget /opt/homebrew/bin/sketchybar --trigger aeros
 preset = 'qwerty'
 
 [gaps]
-inner.horizontal = 8
-inner.vertical = 8
-outer.left = 8
-outer.right = 8
-outer.bottom = 8
-outer.top = 44 # room for sketchybar (30px tall, 5px offset)
+# no padding: sketchybar sits inside the menu bar strip, which macOS already keeps clear
+inner.horizontal = 0
+inner.vertical = 0
+outer.left = 0
+outer.right = 0
+outer.bottom = 0
+outer.top = 0
 
 # ---------------------------------------------------------------------------
 [mode.main.binding]
 ctrl-alt-space = 'mode window'
 ctrl-alt-tab = 'workspace-back-and-forth'
+
+ctrl-alt-h = 'focus left'
+ctrl-alt-j = 'focus down'
+ctrl-alt-k = 'focus up'
+ctrl-alt-l = 'focus right'
+
+ctrl-alt-shift-h = 'move left'
+ctrl-alt-shift-j = 'move down'
+ctrl-alt-shift-k = 'move up'
+ctrl-alt-shift-l = 'move right'
+
+ctrl-alt-f = 'fullscreen'
+ctrl-alt-slash = 'layout tiles horizontal vertical'
+ctrl-alt-comma = 'layout accordion horizontal vertical'
+ctrl-alt-minus = 'resize smart -50'
+ctrl-alt-equal = 'resize smart +50'
+
+ctrl-alt-t = 'workspace T'
+ctrl-alt-b = 'workspace B'
+ctrl-alt-n = 'workspace N'
+ctrl-alt-c = 'workspace C'
+ctrl-alt-v = 'workspace V'
+ctrl-alt-m = 'workspace M'
 ctrl-alt-1 = 'workspace 1'
 ctrl-alt-2 = 'workspace 2'
 ctrl-alt-3 = 'workspace 3'
-ctrl-alt-4 = 'workspace 4'
-ctrl-alt-5 = 'workspace 5'
-ctrl-alt-6 = 'workspace 6'
-ctrl-alt-7 = 'workspace 7'
-ctrl-alt-8 = 'workspace 8'
-ctrl-alt-9 = 'workspace 9'
+
+ctrl-alt-shift-t = 'move-node-to-workspace T --focus-follows-window'
+ctrl-alt-shift-b = 'move-node-to-workspace B --focus-follows-window'
+ctrl-alt-shift-n = 'move-node-to-workspace N --focus-follows-window'
+ctrl-alt-shift-c = 'move-node-to-workspace C --focus-follows-window'
+ctrl-alt-shift-v = 'move-node-to-workspace V --focus-follows-window'
+ctrl-alt-shift-m = 'move-node-to-workspace M --focus-follows-window'
+ctrl-alt-shift-1 = 'move-node-to-workspace 1 --focus-follows-window'
+ctrl-alt-shift-2 = 'move-node-to-workspace 2 --focus-follows-window'
+ctrl-alt-shift-3 = 'move-node-to-workspace 3 --focus-follows-window'
 
 # ---------------------------------------------------------------------------
 [mode.window.binding]
@@ -89,67 +123,75 @@ shift-j = 'move down'
 shift-k = 'move up'
 shift-l = 'move right'
 
+f = 'fullscreen'
+slash = 'layout tiles horizontal vertical'
+comma = 'layout accordion horizontal vertical'
+minus = 'resize smart -50'
+equal = 'resize smart +50'
+
 ctrl-h = 'join-with left'
 ctrl-j = 'join-with down'
 ctrl-k = 'join-with up'
 ctrl-l = 'join-with right'
 
-minus = 'resize smart -50'
-equal = 'resize smart +50'
-
-f = 'fullscreen'
 t = 'layout floating tiling'
-slash = 'layout tiles horizontal vertical'
-comma = 'layout accordion horizontal vertical'
 r = 'flatten-workspace-tree'
 x = 'close'
 c = ['reload-config', 'mode main']
 
-1 = 'workspace 1'
-2 = 'workspace 2'
-3 = 'workspace 3'
-4 = 'workspace 4'
-5 = 'workspace 5'
-6 = 'workspace 6'
-7 = 'workspace 7'
-8 = 'workspace 8'
-9 = 'workspace 9'
-
-shift-1 = 'move-node-to-workspace 1 --focus-follows-window'
-shift-2 = 'move-node-to-workspace 2 --focus-follows-window'
-shift-3 = 'move-node-to-workspace 3 --focus-follows-window'
-shift-4 = 'move-node-to-workspace 4 --focus-follows-window'
-shift-5 = 'move-node-to-workspace 5 --focus-follows-window'
-shift-6 = 'move-node-to-workspace 6 --focus-follows-window'
-shift-7 = 'move-node-to-workspace 7 --focus-follows-window'
-shift-8 = 'move-node-to-workspace 8 --focus-follows-window'
-shift-9 = 'move-node-to-workspace 9 --focus-follows-window'
+# setups: open + arrange the apps for a task across workspaces (aerospace/setup.sh)
+d = ['mode main', 'exec-and-forget ~/.config/aerospace/setup.sh dev']
+s = ['mode main', 'exec-and-forget ~/.config/aerospace/setup.sh study']
+v = ['mode main', 'exec-and-forget ~/.config/aerospace/setup.sh video']
+m = ['mode main', 'exec-and-forget ~/.config/aerospace/setup.sh comms']
 
 # ---------------------------------------------------------------------------
 # where apps land
+# layout tiling: with window-decoration = false Ghostty has no title bar, and AeroSpace
+# would otherwise float it like a dialog (same for kitty)
 [[on-window-detected]]
 if.app-id = 'com.mitchellh.ghostty'
-run = 'move-node-to-workspace 1'
+run = ['layout tiling', 'move-node-to-workspace T']
 
 [[on-window-detected]]
 if.app-id = 'net.kovidgoyal.kitty'
-run = 'move-node-to-workspace 1'
-
-[[on-window-detected]]
-if.app-id = 'com.google.Chrome'
-run = 'move-node-to-workspace 2'
+run = ['layout tiling', 'move-node-to-workspace T']
 
 [[on-window-detected]]
 if.app-id = 'com.apple.Safari'
-run = 'move-node-to-workspace 2'
+run = 'move-node-to-workspace B'
+
+[[on-window-detected]]
+if.app-id = 'com.google.Chrome'
+run = 'move-node-to-workspace B'
 
 [[on-window-detected]]
 if.app-id = 'md.obsidian'
-run = 'move-node-to-workspace 3'
+run = 'move-node-to-workspace N'
+
+[[on-window-detected]]
+if.app-id = 'com.apple.mail'
+run = 'move-node-to-workspace C'
+
+[[on-window-detected]]
+if.app-id = 'com.apple.iCal'
+run = 'move-node-to-workspace C'
+
+[[on-window-detected]]
+if.app-id = 'com.apple.MobileSMS'
+run = 'move-node-to-workspace C'
+
+[[on-window-detected]]
+if.app-id = 'net.whatsapp.WhatsApp'
+run = 'move-node-to-workspace C'
+
+[[on-window-detected]]
+if.app-id = 'com.blackmagic-design.DaVinciResolve'
+run = 'move-node-to-workspace V'
 
 [[on-window-detected]]
 if.app-id = 'com.spotify.client'
-run = 'move-node-to-workspace 9'
+run = 'move-node-to-workspace M'
 
 # small utility windows float instead of tiling
 [[on-window-detected]]
