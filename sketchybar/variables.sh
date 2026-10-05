@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 
-# Color Palette: vague, the same colours as Neovim, Ghostty, kitty and tmux
+# Color Palette: vague, the same colours as Neovim, Ghostty and tmux
 # (values from vague.nvim's get_palette(); keep the names so the item scripts don't change)
 BLACK=0xff141415     # bg
 WHITE=0xffcdcdcd     # fg

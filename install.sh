@@ -82,7 +82,6 @@ link() {
 }
 
 link nvim                 "$HOME/.config/nvim"
-link kitty/kitty.conf     "$HOME/.config/kitty/kitty.conf"
 link ghostty/config       "$HOME/.config/ghostty/config"
 link tmux/tmux.conf       "$HOME/.config/tmux/tmux.conf"
 link starship/starship.toml "$HOME/.config/starship.toml"

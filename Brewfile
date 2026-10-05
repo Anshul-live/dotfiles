@@ -56,6 +56,5 @@ if OS.mac?
   cask "drawio"                          # system design: drag-and-drop HLD/LLD diagrams (workspace D)
   cask "nikitabobko/tap/aerospace"       # tiling window manager
   cask "ghostty"
-  cask "kitty"
   cask "font-jetbrains-mono-nerd-font"
 end

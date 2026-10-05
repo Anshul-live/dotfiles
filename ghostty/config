@@ -5,7 +5,7 @@ font-feature = -liga
 font-feature = -calt
 adjust-cell-height = 15%
 
-# Colors: vague, same as Neovim, tmux, kitty, sketchybar and borders (Ghostty's bundled
+# Colors: vague, same as Neovim, tmux, sketchybar and borders (Ghostty's bundled
 # 'Vague' theme, but selection uses Neovim's visual colour). Opaque, no blur: nothing behind your code.
 background = #141415
 foreground = #cdcdcd
