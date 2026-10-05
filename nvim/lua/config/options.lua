@@ -29,6 +29,8 @@ opt.splitright = true
 opt.splitbelow = true
 opt.laststatus = 3 -- one global statusline
 opt.showmode = false -- mode shows in the statusline badge and the cursor line number color
+-- cursor shape + color per mode (colors set in plugins/ui.lua, follow extra modes too)
+opt.guicursor = "n-o:block-CursorN,v-ve:block-CursorV,i-ci:ver25-CursorI,r-cr:hor20-CursorR,c:ver25-CursorC,t:ver25"
 opt.pumheight = 12
 opt.winborder = "single" -- slim square borders on all floating windows
 opt.linebreak = true

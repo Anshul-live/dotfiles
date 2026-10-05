@@ -25,6 +25,15 @@ return {
           hl.WinSeparator = { fg = p.edge }
           hl.CursorLineNr = { fg = p.accent, bold = true }
           hl.LineNr = { fg = c.line }
+          -- splits you're not in sit a shade darker, so the focused one stands out
+          local function darken(hex, amount)
+            local n = tonumber(hex:sub(2), 16)
+            local function ch(shift)
+              return math.floor(bit.band(bit.rshift(n, shift), 0xff) * (1 - amount))
+            end
+            return ("#%02x%02x%02x"):format(ch(16), ch(8), ch(0))
+          end
+          hl.NormalNC = { fg = c.fg, bg = darken(c.bg, 0.45) }
           hl.FloatBorder = { fg = p.edge, bg = c.bg }
           hl.NormalFloat = { fg = c.fg, bg = c.bg }
           hl.FloatTitle = { fg = p.accent, bold = true }
@@ -52,8 +61,9 @@ return {
       })
       vim.cmd.colorscheme("vague")
       require("config.statusline").setup()
+      require("config.winbar").setup()
 
-      -- mode feedback where your eyes are: the cursor's line number takes the mode color
+      -- mode feedback where your eyes are: the cursor and its line number take the mode color
       -- (an extra mode like debug/test, config/modes.lua, colors normal mode)
       local p = require("config.palette")
       local mode_colors = { n = p.normal, i = p.insert, v = p.visual, V = p.visual, ["\22"] = p.visual, s = p.visual, R = p.replace, c = p.command, t = p.terminal }
@@ -62,8 +72,25 @@ return {
         local color = (m == "n" and require("config.modes").color()) or mode_colors[m] or p.normal
         vim.api.nvim_set_hl(0, "CursorLineNr", { fg = color, bold = true })
       end
+      -- one cursor group per Vim mode ('guicursor' in config/options.lua); the terminal
+      -- draws the color, so the normal-mode one is re-sent when an extra mode changes it
+      local function cursor_colors()
+        local normal = require("config.modes").color() or p.normal
+        for group, color in pairs({ CursorN = normal, CursorI = p.insert, CursorV = p.visual, CursorR = p.replace, CursorC = p.command }) do
+          vim.api.nvim_set_hl(0, group, { fg = p.bg, bg = color })
+        end
+        vim.o.guicursor = vim.o.guicursor
+      end
+      cursor_colors()
       vim.api.nvim_create_autocmd({ "ModeChanged", "ColorScheme" }, { callback = line_nr_color })
-      vim.api.nvim_create_autocmd("User", { pattern = "ModeLayerChanged", callback = line_nr_color })
+      vim.api.nvim_create_autocmd("ColorScheme", { callback = cursor_colors })
+      vim.api.nvim_create_autocmd("User", {
+        pattern = "ModeLayerChanged",
+        callback = function()
+          line_nr_color()
+          cursor_colors()
+        end,
+      })
     end,
   },
 
@@ -89,6 +116,8 @@ return {
       indent = { enabled = true, indent = { enabled = false }, animate = { enabled = false } }, -- one guide: current scope
       scope = { enabled = true },
       words = { enabled = true },
+      -- short glide on <C-d>/<C-u>, gg/G and jumps so your eyes can follow
+      scroll = { enabled = true, animate = { duration = { step = 10, total = 150 }, easing = "outQuad" } },
       lazygit = { enabled = true },
       terminal = { enabled = true },
       statuscolumn = { enabled = true, left = { "mark", "sign" }, right = { "git" } }, -- no fold column

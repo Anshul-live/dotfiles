@@ -20,7 +20,7 @@ map("v", "<", "<gv")
 map("v", ">", ">gv")
 
 -- registers
--- (<leader>D, not <leader>d: that's the debug group, and visual <leader>de evaluates)
+-- (<leader>D: <leader>d enters debug mode)
 map({ "n", "x" }, "<leader>D", '"_d', { desc = "Delete without yank" })
 map("v", "<leader>p", '"_dP', { desc = "Paste over without yank" })
 
@@ -58,6 +58,13 @@ for _, lhs in ipairs({ "grn", "gra", "grr", "gri", "grt", "grx" }) do
 end
 
 -- diagnostics ([d / ]d are Neovim defaults)
+-- ask Claude Code about the error / code here, or the selection (config/ask_claude.lua)
+map("n", "<leader>e", function()
+  require("config.ask_claude").ask()
+end, { desc = "Ask Claude about this" })
+map("x", "<leader>e", function()
+  require("config.ask_claude").ask(true)
+end, { desc = "Ask Claude about selection" })
 map("n", "]e", function()
   vim.diagnostic.jump({ count = 1, severity = vim.diagnostic.severity.ERROR })
 end, { desc = "Next error" })
@@ -84,3 +91,11 @@ map({ "n", "i", "v" }, "<Left>", "<nop>")
 map({ "n", "i", "v" }, "<Right>", "<nop>")
 map({ "n", "v" }, "<LeftMouse>", "<nop>")
 map({ "n", "v" }, "<LeftDrag>", "<nop>")
+
+-- notes for this project: a markdown float kept per working directory (outside the repo)
+map("n", "<leader>n", function()
+  Snacks.scratch({ name = "Notes", ft = "markdown", icon = "\u{f0219} ", filekey = { cwd = true, branch = false, count = false } })
+end, { desc = "Project notes" })
+
+-- focus mode: errors only, quiet, dimmed, pomodoro timer (<leader>z)
+require("config.focus")

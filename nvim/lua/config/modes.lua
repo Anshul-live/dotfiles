@@ -12,6 +12,8 @@
 --     key = "<leader>d", desc = "...", -- color: config.palette[<mode name>]
 --     keys = { { "c", fn_or_rhs, "Continue", mode = { "n", "x" } }, ... },
 --     on_enter = fn, on_exit = fn, -- optional
+--     passive = true, -- optional: a state, not a key layer (no Esc/q, no cheat-sheet);
+--                     -- leave with its own key or the picker (e.g. focus mode)
 --   })
 local M = {}
 
@@ -168,12 +170,16 @@ function M.enter(name, opts)
       vim.keymap.set(mode, k[1], k[2], { desc = name .. ": " .. k[3], nowait = true, silent = not prompt })
     end
   end
-  for _, lhs in ipairs({ "<Esc>", "q" }) do
-    save("n", lhs)
-    vim.keymap.set("n", lhs, M.exit, { desc = "Leave " .. name .. " mode", nowait = true })
+  if not def.passive then
+    for _, lhs in ipairs({ "<Esc>", "q" }) do
+      save("n", lhs)
+      vim.keymap.set("n", lhs, M.exit, { desc = "Leave " .. name .. " mode", nowait = true })
+    end
   end
   set_colors()
-  open_hint()
+  if not def.passive then
+    open_hint()
+  end
   if def.on_enter then
     def.on_enter()
   end
@@ -231,7 +237,7 @@ end
 vim.keymap.set("n", "<leader>m", M.pick, { desc = "Pick a mode" })
 vim.api.nvim_create_autocmd("VimResized", {
   callback = function()
-    if active then
+    if active and not active.def.passive then
       open_hint()
     end
   end,

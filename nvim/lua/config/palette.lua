@@ -27,6 +27,7 @@ return {
   db = c.parameter,
   docker = c.hint,
   http = c.constant,
+  focus = c.type,
 
   warn = c.warning,
   error = c.error,

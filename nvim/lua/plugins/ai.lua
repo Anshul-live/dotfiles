@@ -44,6 +44,7 @@ return {
           { "r", ":CodeCompanion /review<CR>", "review selection", mode = "x" },
           { "f", ":CodeCompanion /refactor<CR>", "fix selection", mode = "x" },
           { "t", ":CodeCompanion /tests<CR>", "tests for selection", mode = "x" },
+          { "C", function() require("config.ask_claude").ask(vim.fn.mode():match("[vV\22]") ~= nil) end, "ask Claude Code", mode = { "n", "x" } },
         },
       })
     end,

@@ -5,7 +5,7 @@ brew "ripgrep"           # grep in pickers
 brew "fd"                # file finding in pickers
 brew "fzf"               # tmux-sessionizer
 brew "tmux"
-brew "lazygit"           # <space>gg
+brew "lazygit"           # git mode (<space>g) then L
 brew "lazydocker"        # <space>od
 brew "hurl"              # REST client (*.hurl files)
 brew "jq"                # formats JSON responses

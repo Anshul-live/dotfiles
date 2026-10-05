@@ -74,8 +74,25 @@ return {
           map("gy", pick.lsp_type_definitions, "Go to type definition")
           map("gr", pick.lsp_references, "References")
           map("gI", pick.lsp_implementations, "Go to implementation")
+          map("gp", function() require("config.peek").definition() end, "Peek definition")
           map("<leader>ca", vim.lsp.buf.code_action, "Code action", { "n", "v" })
           map("<leader>cr", vim.lsp.buf.rename, "Rename symbol")
+          map("<leader>cl", vim.lsp.codelens.run, "Run code lens")
+
+          -- Neovim 0.12 extras, where the server supports them:
+          -- code lenses as virtual lines (references, run test, ...), both HTML/JSX tags
+          -- renamed together, and color swatches next to CSS colors
+          if client then
+            if client:supports_method("textDocument/codeLens") then
+              vim.lsp.codelens.enable(true, { bufnr = ev.buf })
+            end
+            if client:supports_method("textDocument/linkedEditingRange") then
+              vim.lsp.linked_editing_range.enable(true, { client_id = client.id })
+            end
+            if client:supports_method("textDocument/documentColor") then
+              vim.lsp.document_color.enable(true, { bufnr = ev.buf })
+            end
+          end
 
           -- inlay hints are off by default to keep code clean; <leader>uh toggles them
           if client and client.name == "clangd" then

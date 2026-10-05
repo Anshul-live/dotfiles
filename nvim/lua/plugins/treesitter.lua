@@ -27,7 +27,7 @@ return {
       -- (C++ highlights alone take ~180ms). Neovim caches them per session, so:
       -- first file of a language -> draw the text first, highlight right after,
       -- then compile its other queries in idle slices (no hitch on first Enter/fold).
-      local warm = {}
+      local warm, pending = {}, {}
       vim.api.nvim_create_autocmd("FileType", {
         group = vim.api.nvim_create_augroup("user_treesitter", { clear = true }),
         callback = function(ev)
@@ -38,11 +38,19 @@ return {
           if not lang or not pcall(vim.treesitter.language.add, lang) then
             return
           end
+          -- lazy.nvim re-fires FileType when an ft-loaded plugin (e.g. clangd_extensions)
+          -- loads; that repeat must not start highlighting early, synchronously
+          local hl = vim.treesitter.highlighter.active[ev.buf]
+          if pending[ev.buf] == lang or (hl and hl.tree:lang() == lang) then
+            return
+          end
           if warm[lang] then
             return start(ev.buf, lang)
           end
           warm[lang] = true
+          pending[ev.buf] = lang
           vim.schedule(function()
+            pending[ev.buf] = nil
             start(ev.buf, lang)
             local kinds = { "indents", "folds", "injections" }
             local function step()

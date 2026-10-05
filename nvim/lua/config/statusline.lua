@@ -90,14 +90,14 @@ local function lsp()
   return ""
 end
 
-local function diagnostics()
+local function diagnostics(errors_only)
   local count = vim.diagnostic.count(0)
   local s = vim.diagnostic.severity
   local out = {}
   if (count[s.ERROR] or 0) > 0 then
     table.insert(out, hl("DiagnosticError", "\u{f057} " .. count[s.ERROR]))
   end
-  if (count[s.WARN] or 0) > 0 then
+  if not errors_only and (count[s.WARN] or 0) > 0 then
     table.insert(out, hl("DiagnosticWarn", "\u{f071} " .. count[s.WARN]))
   end
   return table.concat(out, " ")
@@ -147,8 +147,12 @@ function M.render()
   if vim.bo.filetype == "snacks_dashboard" then
     return ""
   end
+  -- focus mode (config/focus.lua) keeps only what you'd act on right now
+  local parts = require("config.modes").active() == "focus"
+      and { recording(), diagnostics(true), hl("StlDim", require("config.focus").status()) }
+    or { recording(), lsp(), diagnostics(), git(), pinned(), branch() }
   local right = {}
-  for _, part in ipairs({ recording(), lsp(), diagnostics(), git(), pinned(), branch() }) do
+  for _, part in ipairs(parts) do
     if part ~= "" then
       table.insert(right, part)
     end
