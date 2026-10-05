@@ -74,7 +74,7 @@ return {
               end
               local prefix = item.item.lhs:match("^<Space>(%a)") or item.item.lhs:match("^ (%a)")
               item.group = ({
-                a = "ai", b = "buffer", c = "code", d = "debug", f = "find", g = "git",
+                a = "ai", b = "buffer", c = "code", d = "debug", f = "find", g = "git", j = "judge", k = "notes",
                 o = "tools", q = "session", s = "symbols", t = "test", u = "toggle", x = "lists",
               })[prefix or ""] or ""
               item.text = item.group .. " " .. desc .. " " .. item.item.lhs

@@ -1,26 +1,30 @@
 # AeroSpace: tiling window manager. Linked to ~/.config/aerospace/aerospace.toml by install.sh.
 #
-# Everything sits on Ctrl+Alt (one press, no mode) so Alt stays free for Neovim (treewalker, resize).
+# Everything sits on Hyper = Ctrl+Alt+Cmd, which Karabiner puts on a held Right Cmd
+# (karabiner/karabiner.json): one thumb + one key, same spot on the laptop and the Hive 65.
+# Ctrl+Alt alone stays free for Neovim and tmux.
 #
-# Workspaces are letters for what lives there; apps land on theirs when they open:
-#   T terminal (Ghostty: tmux + nvim, Claude inside nvim)   B browser (Safari)
-#   N notes (Obsidian)   C comms (Mail, Calendar, Messages, WhatsApp)
-#   V video (DaVinci Resolve)   M music (Spotify)   D design (draw.io, Excalidraw)
+# Workspaces are letters for what lives there; apps land on theirs when they open.
+# Going to B N C M opens what lives there if it isn't running yet (setup.sh ensure):
+#   T terminal (Ghostty: tmux + nvim, Claude inside nvim)   B browser (qutebrowser; Chrome fallback)
+#   R reading (sioyek PDFs)   N notes (nvim on the vault)
+#   C comms (tmux: aerc mail, khal calendar, newsboat RSS; Messages, WhatsApp)
+#   M music (spotify_player)   V video (DaVinci Resolve)   D design (draw.io, Excalidraw)
 #   1 2 3 spare, for anything else
 #
-#   ctrl-alt-t b n c v m d 1 2 3      go to workspace
-#   ctrl-alt-shift-t b n c v m d 1 2 3 send window there (and follow it)
-#   ctrl-alt-tab                      previous workspace
-#   ctrl-alt-h j k l                  focus left/down/up/right
-#   ctrl-alt-shift-h j k l            move window
-#   ctrl-alt-f                        fullscreen
-#   ctrl-alt-/                        side-by-side tiles (the default; flips horizontal/vertical)
-#   ctrl-alt-,                        full-screen stack (h/l flips between windows)
-#   ctrl-alt-- / =                    shrink / grow
+#   hyper-t b r n c m v d 1 2 3       go to workspace
+#   hyper-shift-t b r n c m v d 1 2 3 send window there (and follow it)
+#   hyper-tab                         previous workspace
+#   hyper-h j k l                     focus left/down/up/right
+#   hyper-shift-h j k l               move window
+#   hyper-f                           fullscreen
+#   hyper-/                           side-by-side tiles (the default; flips horizontal/vertical)
+#   hyper-,                           full-screen stack (h/l flips between windows)
+#   hyper-- / =                       shrink / grow
 #
-#   ctrl-alt-space    WINDOW mode (sketchybar shows a cheat-sheet), then one key:
+#   hyper-space       WINDOW mode (sketchybar shows a cheat-sheet), then one key:
 #     d s v m e       setups: dev / study / video / morning comms / design (see setup.sh)
-#     h j k l, H J K L, - =, f, /, ,   same as above without Ctrl+Alt (handy for repeated resizing)
+#     h j k l, H J K L, - =, f, /, ,   same as above without Hyper (handy for repeated resizing)
 #     ctrl-h/j/k/l    join with the neighbour (nest into a split)
 #     t               float <-> tile
 #     r               reset the layout tree
@@ -37,7 +41,7 @@ start-at-login = true
 enable-normalization-flatten-containers = true
 enable-normalization-opposite-orientation-for-nested-containers = true
 
-# tiles: one window fills the screen, more split it side by side; ctrl-alt-, stacks them instead
+# tiles: one window fills the screen, more split it side by side; hyper-, stacks them instead
 accordion-padding = 0
 default-root-container-layout = 'tiles'
 default-root-container-orientation = 'auto'
@@ -46,7 +50,7 @@ on-focused-monitor-changed = ['move-mouse monitor-lazy-center']
 automatically-unhide-macos-hidden-apps = false
 
 # the bar hides empty ones anyway; this keeps the order fixed
-persistent-workspaces = ["T", "B", "N", "C", "V", "M", "D", "1", "2", "3"]
+persistent-workspaces = ["T", "B", "R", "N", "C", "M", "V", "D", "1", "2", "3"]
 
 # sketchybar: highlight the focused workspace, show the WINDOW mode badge
 # (full path: commands run from AeroSpace don't have Homebrew on their PATH)
@@ -70,46 +74,49 @@ outer.top = 0
 
 # ---------------------------------------------------------------------------
 [mode.main.binding]
-ctrl-alt-space = 'mode window'
-ctrl-alt-tab = 'workspace-back-and-forth'
+ctrl-alt-cmd-space = 'mode window'
+ctrl-alt-cmd-tab = 'workspace-back-and-forth'
 
-ctrl-alt-h = 'focus left'
-ctrl-alt-j = 'focus down'
-ctrl-alt-k = 'focus up'
-ctrl-alt-l = 'focus right'
+ctrl-alt-cmd-h = 'focus left'
+ctrl-alt-cmd-j = 'focus down'
+ctrl-alt-cmd-k = 'focus up'
+ctrl-alt-cmd-l = 'focus right'
 
-ctrl-alt-shift-h = 'move left'
-ctrl-alt-shift-j = 'move down'
-ctrl-alt-shift-k = 'move up'
-ctrl-alt-shift-l = 'move right'
+ctrl-alt-cmd-shift-h = 'move left'
+ctrl-alt-cmd-shift-j = 'move down'
+ctrl-alt-cmd-shift-k = 'move up'
+ctrl-alt-cmd-shift-l = 'move right'
 
-ctrl-alt-f = 'fullscreen'
-ctrl-alt-slash = 'layout tiles horizontal vertical'
-ctrl-alt-comma = 'layout accordion horizontal vertical'
-ctrl-alt-minus = 'resize smart -50'
-ctrl-alt-equal = 'resize smart +50'
+ctrl-alt-cmd-f = 'fullscreen'
+ctrl-alt-cmd-slash = 'layout tiles horizontal vertical'
+ctrl-alt-cmd-comma = 'layout accordion horizontal vertical'
+ctrl-alt-cmd-minus = 'resize smart -50'
+ctrl-alt-cmd-equal = 'resize smart +50'
 
-ctrl-alt-t = 'workspace T'
-ctrl-alt-b = 'workspace B'
-ctrl-alt-n = 'workspace N'
-ctrl-alt-c = 'workspace C'
-ctrl-alt-v = 'workspace V'
-ctrl-alt-m = 'workspace M'
-ctrl-alt-d = 'workspace D'
-ctrl-alt-1 = 'workspace 1'
-ctrl-alt-2 = 'workspace 2'
-ctrl-alt-3 = 'workspace 3'
+# B N C M: switch at once, then open what lives there if it is missing (runs in the background)
+ctrl-alt-cmd-t = 'workspace T'
+ctrl-alt-cmd-b = ['workspace B', 'exec-and-forget ~/.config/aerospace/setup.sh ensure B']
+ctrl-alt-cmd-r = 'workspace R'
+ctrl-alt-cmd-n = ['workspace N', 'exec-and-forget ~/.config/aerospace/setup.sh ensure N']
+ctrl-alt-cmd-c = ['workspace C', 'exec-and-forget ~/.config/aerospace/setup.sh ensure C']
+ctrl-alt-cmd-m = ['workspace M', 'exec-and-forget ~/.config/aerospace/setup.sh ensure M']
+ctrl-alt-cmd-v = 'workspace V'
+ctrl-alt-cmd-d = 'workspace D'
+ctrl-alt-cmd-1 = 'workspace 1'
+ctrl-alt-cmd-2 = 'workspace 2'
+ctrl-alt-cmd-3 = 'workspace 3'
 
-ctrl-alt-shift-t = 'move-node-to-workspace T --focus-follows-window'
-ctrl-alt-shift-b = 'move-node-to-workspace B --focus-follows-window'
-ctrl-alt-shift-n = 'move-node-to-workspace N --focus-follows-window'
-ctrl-alt-shift-c = 'move-node-to-workspace C --focus-follows-window'
-ctrl-alt-shift-v = 'move-node-to-workspace V --focus-follows-window'
-ctrl-alt-shift-m = 'move-node-to-workspace M --focus-follows-window'
-ctrl-alt-shift-d = 'move-node-to-workspace D --focus-follows-window'
-ctrl-alt-shift-1 = 'move-node-to-workspace 1 --focus-follows-window'
-ctrl-alt-shift-2 = 'move-node-to-workspace 2 --focus-follows-window'
-ctrl-alt-shift-3 = 'move-node-to-workspace 3 --focus-follows-window'
+ctrl-alt-cmd-shift-t = 'move-node-to-workspace T --focus-follows-window'
+ctrl-alt-cmd-shift-b = 'move-node-to-workspace B --focus-follows-window'
+ctrl-alt-cmd-shift-r = 'move-node-to-workspace R --focus-follows-window'
+ctrl-alt-cmd-shift-n = 'move-node-to-workspace N --focus-follows-window'
+ctrl-alt-cmd-shift-c = 'move-node-to-workspace C --focus-follows-window'
+ctrl-alt-cmd-shift-m = 'move-node-to-workspace M --focus-follows-window'
+ctrl-alt-cmd-shift-v = 'move-node-to-workspace V --focus-follows-window'
+ctrl-alt-cmd-shift-d = 'move-node-to-workspace D --focus-follows-window'
+ctrl-alt-cmd-shift-1 = 'move-node-to-workspace 1 --focus-follows-window'
+ctrl-alt-cmd-shift-2 = 'move-node-to-workspace 2 --focus-follows-window'
+ctrl-alt-cmd-shift-3 = 'move-node-to-workspace 3 --focus-follows-window'
 
 # ---------------------------------------------------------------------------
 [mode.window.binding]
@@ -151,6 +158,11 @@ e = ['mode main', 'exec-and-forget ~/.config/aerospace/setup.sh design']
 
 # ---------------------------------------------------------------------------
 # where apps land
+# first match wins: qutebrowser's external editor (a Ghostty window) floats instead of going to T
+[[on-window-detected]]
+if.window-title-regex-substring = '^qutebrowser-edit$'
+run = 'layout floating'
+
 # layout tiling: with window-decoration = false Ghostty has no title bar, and AeroSpace
 # would otherwise float it like a dialog (same for kitty)
 [[on-window-detected]]
@@ -161,6 +173,12 @@ run = ['layout tiling', 'move-node-to-workspace T']
 if.app-id = 'net.kovidgoyal.kitty'
 run = ['layout tiling', 'move-node-to-workspace T']
 
+# qutebrowser is a pip install with no bundle id: match the title suffix its config pins
+# (qutebrowser/config.py window.title_format)
+[[on-window-detected]]
+if.window-title-regex-substring = 'qutebrowser$'
+run = 'move-node-to-workspace B'
+
 [[on-window-detected]]
 if.app-id = 'com.apple.Safari'
 run = 'move-node-to-workspace B'
@@ -168,6 +186,10 @@ run = 'move-node-to-workspace B'
 [[on-window-detected]]
 if.app-id = 'com.google.Chrome'
 run = 'move-node-to-workspace B'
+
+[[on-window-detected]]
+if.app-id = 'info.sioyek.sioyek'
+run = 'move-node-to-workspace R'
 
 [[on-window-detected]]
 if.app-id = 'md.obsidian'
@@ -221,3 +243,8 @@ run = 'layout floating'
 [[on-window-detected]]
 if.app-id = 'com.apple.ActivityMonitor'
 run = 'layout floating'
+
+# mpv (brew CLI, no bundle id) tiles wherever you started it
+[[on-window-detected]]
+if.app-name-regex-substring = '^mpv$'
+run = 'layout tiling'

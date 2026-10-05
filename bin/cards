@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# Spaced repetition for the Devlogs vault: `cards sync`, `cards review`, `cards stats` ...
+# The code is cards/cards.py; it runs on the python of the apyanki uv tool because that
+# env has the `anki` package (scheduler + AnkiWeb sync, no Anki desktop app needed).
+set -euo pipefail
+
+src="$(readlink -f "${BASH_SOURCE[0]}")"
+script="$(dirname "$src")/../cards/cards.py"
+py="$(uv tool dir 2>/dev/null)/apyanki/bin/python"
+if [[ ! -x "$py" ]]; then
+	echo "cards: needs the apyanki tool: uv tool install apyanki" >&2
+	exit 1
+fi
+exec "$py" "$script" "$@"

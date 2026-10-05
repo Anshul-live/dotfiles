@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Distraction blocker daemon. blocker/install.sh copies this to
+  /Library/LaunchDaemons/com.anshul.blocker.plist (root:wheel 644) and loads it.
+  Runs as root at boot, every 5 min, and whenever /etc/hosts is touched, so a
+  hand edit is undone within seconds and a due unblock lands within 5 min.
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.anshul.blocker</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>/usr/local/libexec/blocker-apply</string>
+    <string>apply</string>
+  </array>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>StartInterval</key>
+  <integer>300</integer>
+  <key>WatchPaths</key>
+  <array>
+    <string>/private/etc/hosts</string>
+  </array>
+  <key>StandardOutPath</key>
+  <string>/var/log/blocker.log</string>
+  <key>StandardErrorPath</key>
+  <string>/var/log/blocker.log</string>
+</dict>
+</plist>

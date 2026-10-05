@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# AeroSpace mode badge: hidden normally, shows " WINDOW " while ctrl-alt-space mode is on
+# AeroSpace mode badge: hidden normally, shows " WINDOW " while hyper-space mode is on (Hyper = held Right Cmd)
 # (like the mode badge in the Neovim statusline), with a cheat-sheet popup underneath.
 # AeroSpace fires the event on every mode change.
 # updates=on: the bar's default (when_shown) would never run the script while the badge is hidden.
@@ -39,7 +39,7 @@ HELP=(
 	"x|close window"
 	"c|reload config"
 	"esc|back to normal"
-	"⌃⌥ T B N C V M D|go to workspace (no mode needed)"
+	"hyper T B R N C M V D|go to workspace (no mode needed)"
 )
 i=0
 for row in "${HELP[@]}"; do

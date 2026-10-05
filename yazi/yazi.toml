@@ -1,0 +1,56 @@
+# Yazi: the terminal Finder. install.sh links yazi/ -> ~/.config/yazi (written for yazi 26.x;
+# only what differs from the built-in preset, which yazi merges underneath).
+# Previews: images/video/pdf via kitty graphics in Ghostty (pdftoppm, ffmpeg do the work).
+
+[mgr]
+# 13": a thin parent column, most room for the preview
+ratio          = [ 1, 3, 4 ]
+sort_by        = "natural"
+sort_dir_first = true
+show_hidden    = true
+linemode       = "size"
+scrolloff      = 8
+
+[preview]
+wrap      = "no"
+tab_size  = 4
+image_delay = 0
+
+# Openers. %s = selected files, %s1 = the first one (yazi quotes them).
+# block = takes over the terminal until it exits; orphan = detached GUI app.
+[opener]
+edit = [
+	{ run = "nvim %s", desc = "nvim", block = true, for = "unix" },
+]
+pdf = [
+	{ run = "open -a \"$HOME/Applications/sioyek.app\" %s", desc = "sioyek", orphan = true, for = "macos" },
+]
+play = [
+	{ run = "mpv --really-quiet %s", desc = "mpv", orphan = true, for = "unix" },
+	{ run = "mpv --no-video %s", desc = "mpv (audio only, here)", block = true, for = "unix" },
+]
+image = [
+	{ run = "open %s", desc = "Preview", for = "macos" },
+	{ run = "qlmanage -p %s1 >/dev/null 2>&1", desc = "Quick Look", orphan = true, for = "macos" },
+]
+browser = [
+	{ run = "qutebrowser %s", desc = "qutebrowser", orphan = true, for = "unix" },
+]
+extract = [
+	# ouch picks the format from the extension and asks before overwriting
+	{ run = "ouch decompress %s", desc = "ouch d", block = true, for = "unix" },
+	{ run = "ya pub extract --list %s", desc = "Extract here (yazi)" },
+]
+
+# Checked before the preset's rules (which already send text -> edit, media -> play,
+# archives -> extract, anything else -> open).
+[open]
+prepend_rules = [
+	{ mime = "application/pdf", use = [ "pdf", "open", "reveal" ] },
+	{ mime = "text/html", use = [ "browser", "edit", "reveal" ] },
+	{ url = "*.{htm,html,xhtml}", use = [ "browser", "edit", "reveal" ] },
+	{ mime = "image/*", use = [ "image", "reveal" ] },
+	{ mime = "{audio,video}/*", use = [ "play", "reveal" ] },
+	# config files without a text/* mime (toml, yaml, sh, ...) still go to nvim
+	{ mime = "application/{toml,yaml,x-sh,x-shellscript,xml,sql}", use = [ "edit", "reveal" ] },
+]

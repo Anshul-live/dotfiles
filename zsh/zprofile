@@ -1,0 +1,5 @@
+# Login zsh only (Ghostty starts login shells). Linked to $ZDOTDIR/.zprofile by install.sh.
+# /etc/zprofile runs macOS's path_helper after .zshenv, which pushes /usr/local/bin and the
+# system dirs in front of Homebrew (old Docker Desktop docker, Apple's clang/git...).
+# Re-applying .zshenv puts our order back on top (path is typeset -U, so nothing doubles).
+source $ZDOTDIR/.zshenv

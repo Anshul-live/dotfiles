@@ -1,0 +1,105 @@
+#!/usr/bin/env bash
+# Distraction blocker front end (linked to ~/.local/bin/block). Blocking is instant;
+# unblocking means typing a long sentence and then waiting 24h. The real work is
+# done as root by /usr/local/libexec/blocker-apply (see blocker/install.sh).
+#   block list                 what's blocked (and what's about to be unblocked)
+#   block add <domain>...      block now (sudo)
+#   block remove <domain>      queue an unblock for 24h from now (sudo)
+#   block pending              queued unblocks and time left
+#   block cancel <domain>      keep it blocked after all (sudo)
+#   block status               is the daemon alive, is /etc/hosts in sync
+set -euo pipefail
+
+# overrides exist for tests; normal use never sets them
+APPLY=${BLOCKER_APPLY:-/usr/local/libexec/blocker-apply}
+STATE=${BLOCKER_STATE:-/usr/local/etc/blocker}
+HOSTS=${BLOCKER_HOSTS:-/etc/hosts}
+SUDO=${BLOCKER_SUDO-sudo}
+NOW=${BLOCKER_NOW:-$(date +%s)}
+COOLDOWN=86400
+
+die() { echo "block: $*" >&2; exit 1; }
+[[ -x $APPLY && -d $STATE ]] || die "not installed: run  sudo ~/dotfiles/blocker/install.sh"
+
+entries() { [[ -f $1 ]] && awk '{ sub(/#.*/, "") } NF { print tolower($1) }' "$1"; return 0; }
+root() { $SUDO "$APPLY" "$@"; }
+
+# "domain secs-left" for each queued unblock
+left() {
+  [[ -f $STATE/pending.txt ]] || return 0
+  awk -v now="$NOW" -v cd="$COOLDOWN" '{ sub(/#.*/, "") } NF >= 2 { l = $2 + cd - now; print tolower($1), (l > 0 ? l : 0) }' \
+    "$STATE/pending.txt"
+}
+dur() { local s=$1; ((s > 0)) || { echo "due (next daemon run)"; return; }; printf '%dh %02dm\n' $((s / 3600)) $((s % 3600 / 60)); }
+
+cmd=${1:-list}
+[[ $# -gt 0 ]] && shift
+case $cmd in
+  list | ls)
+    pend=$(left)
+    entries "$STATE/blocklist.txt" | while read -r d; do
+      s=$(awk -v d="$d" '$1 == d { print $2 }' <<<"$pend")
+      if [[ -n $s ]]; then echo "$d  (unblocks in $(dur "$s"))"; else echo "$d"; fi
+    done
+    ;;
+
+  add)
+    (($#)) || die "usage: block add <domain>..."
+    root add "$@"
+    ;;
+
+  remove | rm)
+    (($# == 1)) || die "usage: block remove <domain>   (one at a time, on purpose)"
+    d=$("$APPLY" norm "$1") || exit 1
+    hits=$(entries "$STATE/blocklist.txt" | awk -v d="$d" '$0 == d || substr($0, length($0) - length(d)) == "." d')
+    [[ -n $hits ]] || die "$d isn't blocked"
+    if s=$(left | awk -v d="$d" '$1 == d { print $2 }') && [[ -n $s ]]; then
+      echo "$d is already queued: unblocks in $(dur "$s"). \`block cancel $d\` keeps it blocked."
+      exit 0
+    fi
+    sentence="I am choosing to unblock $d even though I blocked it on purpose, and I accept that this will cost me focus."
+    echo "This queues an unblock of:" $hits
+    echo "It takes effect in 24 hours. To go ahead, type this exactly:"
+    echo
+    echo "  $sentence"
+    echo
+    IFS= read -r -p "> " typed || true
+    [[ $typed == "$sentence" ]] || die "didn't match; still blocked"
+    root queue "$d"
+    ;;
+
+  pending)
+    out=$(left)
+    [[ -n $out ]] || { echo "nothing pending"; exit 0; }
+    while read -r d s; do
+      printf '%-28s %s  (%s)\n' "$d" "$(dur "$s")" "$(date -r $((NOW + s)) '+%a %H:%M')"
+    done <<<"$out"
+    ;;
+
+  cancel)
+    (($# == 1)) || die "usage: block cancel <domain>"
+    root cancel "$1"
+    ;;
+
+  status)
+    n=$(entries "$STATE/blocklist.txt" | wc -l | tr -d ' ')
+    p=$(left | wc -l | tr -d ' ')
+    echo "blocked:  $n domains, $p pending unblock(s)"
+    if grep -qxF '# >>> blocker >>>' "$HOSTS" 2>/dev/null; then
+      h=$(sed -n '/^# >>> blocker >>>$/,/^# <<< blocker <<<$/p' "$HOSTS" | grep -c '^0\.0\.0\.0 ' || true)
+      echo "hosts:    $h hostnames in $HOSTS"
+    else
+      echo "hosts:    no blocker section in $HOSTS (daemon not running?)"
+    fi
+    if [[ -f $STATE/.heartbeat ]]; then
+      age=$(($(date +%s) - $(stat -f %m "$STATE/.heartbeat")))
+      if ((age < 600)); then echo "daemon:   ok, last ran ${age}s ago"
+      else echo "daemon:   STALE, last ran $((age / 60))m ago -> sudo ~/dotfiles/blocker/install.sh"; fi
+    else
+      echo "daemon:   never ran -> sudo ~/dotfiles/blocker/install.sh"
+    fi
+    ;;
+
+  -h | --help | help) sed -n '2,10s/^# \{0,1\}//p' "$0" ;;
+  *) die "unknown command: $cmd (try block help)" ;;
+esac

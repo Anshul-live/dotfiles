@@ -1,0 +1,83 @@
+# newsboat: RSS reader, window "rss" of the tmux session "comms" (bin/ws-session).
+# install.sh links this and urls into ~/.config/newsboat/ (newsboat uses the XDG paths when
+# ~/.newsboat doesn't exist; cache in ~/.local/share/newsboat). Feeds: newsboat/urls.
+
+# --- fetching ---
+reload-time 60
+auto-reload yes
+reload-threads 8
+download-retries 2
+download-timeout 20
+# keep the cache small: 200 articles per feed, unread ones are never dropped
+max-items 200
+keep-articles-days 90
+cleanup-on-quit yes
+confirm-mark-feed-read no
+
+# --- reading ---
+browser "qutebrowser %u"
+# hide feeds with nothing new; newest first
+show-read-feeds no
+show-read-articles yes
+article-sort-order date-desc
+text-width 80
+datetime-format "%d %b"
+feedlist-format "%4i %n %11u %t"
+articlelist-format "%4i %f %D  %?T?|%-17T|  ?%t"
+feedlist-title-format "%N  %u unread  %?T?· %T?"
+articlelist-title-format "%T  %u unread"
+itemview-title-format "%F"
+show-keymap-hint no
+swap-title-and-hints yes
+scrolloff 5
+
+# ,v plays the link in mpv (videos, podcasts); ,y copies it
+macro v set browser "mpv --really-quiet %u >/dev/null 2>&1 &" ; open-in-browser ; set browser "qutebrowser %u"
+macro y set browser "printf %s %u | pbcopy" ; open-in-browser ; set browser "qutebrowser %u"
+
+# --- vim keys ---
+bind-key j down
+bind-key k up
+bind-key J next-feed articlelist
+bind-key K prev-feed articlelist
+bind-key j next article
+bind-key k prev article
+bind-key G end
+bind-key g home
+bind-key ^D pagedown
+bind-key ^U pageup
+bind-key l open
+bind-key h quit
+bind-key n next-unread
+bind-key N prev-unread
+bind-key o open-in-browser-and-mark-read
+bind-key O open-in-browser
+bind-key a toggle-article-read
+bind-key U show-urls
+bind-key x pb-download
+bind-key / open-search
+unbind-key ^R
+bind-key R reload-all
+
+# --- colours: vague. Ghostty's palette is vague, so named colours land exactly on it
+# (black #252530, red #d8647e, green #7fa563, yellow #f3be7c, blue #6e94b2, magenta
+# #bb9dbd, cyan #aeaed1, color8 #606079); "default" is the terminal's own fg/bg.
+color background         default  default
+color listnormal         color8   default
+color listnormal_unread  white    default  bold
+color listfocus          white    black
+color listfocus_unread   white    black    bold
+color info               blue     default  bold
+color hint-key           yellow   default  bold
+color hint-keys-delimiter color8  default
+color hint-separator     color8   default
+color hint-description   color8   default
+color title              blue     default  bold
+color article            white    default
+color end-of-text-marker color8   default
+
+highlight article "^(Feed|Title|Author|Link|Date|Podcast Download URL):.*$" color8 default
+highlight article "^Title:.*$" white default bold
+highlight article "https?://[^ ]+" blue default underline
+highlight article "\\[[0-9]+\\]" yellow default
+highlight article "\\[image [0-9]+[^]]*\\]" magenta default

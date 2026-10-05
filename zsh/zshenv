@@ -30,3 +30,6 @@ export BAT_PAGER="less -RF"
 
 # RFC reader
 export RFC_HOME="$HOME/rfc" RFC_ROOT_DIR="$HOME/rfc" RFC_INDEX="$HOME/rfc/rfc_index_clean.txt"
+
+# CP: Apple's and Homebrew's clang have no <bits/stdc++.h>; cp-fetch keeps a stand-in here
+export CPLUS_INCLUDE_PATH="$HOME/Desktop/code/dsa/include${CPLUS_INCLUDE_PATH:+:$CPLUS_INCLUDE_PATH}"

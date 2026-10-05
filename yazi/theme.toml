@@ -1,0 +1,102 @@
+# Yazi colours: vague, same palette as Ghostty/nvim/tmux. install.sh links yazi/ -> ~/.config/yazi.
+# Only overrides; yazi merges its dark preset underneath. Section names are yazi 26.x ([mgr], [cmp]).
+
+[mgr]
+cwd             = { fg = "#aeaed1" }
+find_keyword    = { fg = "#f3be7c", bold = true }
+find_position   = { fg = "#bb9dbd", bold = true }
+marker_copied   = { fg = "#7fa563", bg = "#7fa563" }
+marker_cut      = { fg = "#d8647e", bg = "#d8647e" }
+marker_marked   = { fg = "#aeaed1", bg = "#aeaed1" }
+marker_selected = { fg = "#f3be7c", bg = "#f3be7c" }
+count_copied    = { fg = "#141415", bg = "#7fa563" }
+count_cut       = { fg = "#141415", bg = "#d8647e" }
+count_selected  = { fg = "#141415", bg = "#f3be7c" }
+border_symbol   = "│"
+border_style    = { fg = "#252530" }
+
+[indicator]
+# a quiet bar like nvim's CursorLine/Visual instead of reversed video
+parent  = { fg = "#cdcdcd", bg = "#252530" }
+current = { fg = "#cdcdcd", bg = "#333738", bold = true }
+preview = { underline = true }
+
+[tabs]
+active   = { fg = "#141415", bg = "#6e94b2", bold = true }
+inactive = { fg = "#606079", bg = "#252530" }
+
+[mode]
+normal_main = { fg = "#141415", bg = "#6e94b2", bold = true }
+normal_alt  = { fg = "#6e94b2", bg = "#252530" }
+select_main = { fg = "#141415", bg = "#bb9dbd", bold = true }
+select_alt  = { fg = "#bb9dbd", bg = "#252530" }
+unset_main  = { fg = "#141415", bg = "#d8647e", bold = true }
+unset_alt   = { fg = "#d8647e", bg = "#252530" }
+
+[status]
+perm_sep        = { fg = "#606079" }
+perm_type       = { fg = "#7fa563" }
+perm_read       = { fg = "#f3be7c" }
+perm_write      = { fg = "#d8647e" }
+perm_exec       = { fg = "#aeaed1" }
+progress_label  = { fg = "#cdcdcd", bold = true }
+progress_normal = { fg = "#6e94b2", bg = "#252530" }
+progress_error  = { fg = "#d8647e", bg = "#252530" }
+
+[which]
+border          = { fg = "#606079" }
+cand            = { fg = "#aeaed1" }
+rest            = { fg = "#606079" }
+desc            = { fg = "#bb9dbd" }
+separator_style = { fg = "#606079" }
+
+[confirm]
+border = { fg = "#606079" }
+title  = { fg = "#6e94b2" }
+
+[spot]
+border   = { fg = "#606079" }
+title    = { fg = "#6e94b2" }
+tbl_col  = { fg = "#6e94b2" }
+tbl_cell = { fg = "#f3be7c", reversed = true }
+
+[notify]
+title_info  = { fg = "#7fa563" }
+title_warn  = { fg = "#f3be7c" }
+title_error = { fg = "#d8647e" }
+
+[pick]
+border = { fg = "#606079" }
+active = { fg = "#bb9dbd", bold = true }
+
+[input]
+border   = { fg = "#606079" }
+title    = { fg = "#6e94b2" }
+selected = { bg = "#333738" }
+
+[cmp]
+border = { fg = "#606079" }
+active = { bg = "#333738" }
+
+[tasks]
+border  = { fg = "#606079" }
+hovered = { fg = "#bb9dbd", bold = true }
+
+[help]
+border  = { fg = "#606079" }
+chord   = { fg = "#aeaed1" }
+hovered = { bg = "#333738", bold = true }
+
+[filetype]
+rules = [
+	{ mime = "**/image/*", fg = "#f3be7c" },
+	{ mime = "**/{audio,video}/*", fg = "#bb9dbd" },
+	{ mime = "**/application/{zip,rar,7z*,tar,gzip,xz,zstd,bzip*,lzma,compress,archive,cpio,arj,xar,ms-cab*}", fg = "#d8647e" },
+	{ mime = "**/application/{pdf,doc,rtf}", fg = "#aeaed1" },
+	{ mime = "vfs/{absent,stale}", fg = "#606079" },
+	{ url = "*", is = "orphan", fg = "#d8647e" },
+	{ url = "*", is = "exec", fg = "#7fa563" },
+	{ url = "*", is = "dummy", fg = "#d8647e" },
+	{ url = "*/", is = "dummy", fg = "#d8647e" },
+	{ url = "*/", fg = "#6e94b2" },
+]

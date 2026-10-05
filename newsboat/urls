@@ -1,0 +1,50 @@
+# newsboat feeds (linked to ~/.config/newsboat/urls). "~Name" sets the title; quoted words are
+# tags (newsboat: `t` filters by tag). Every URL checked for 200 + valid XML on 2026-10-05.
+# Not here: Codeforces (403 behind Cloudflare), Uber eng (406), AtCoder (broken XML).
+
+# --- views ---
+"query:Unread:unread = \"yes\""
+"query:C++:tags # \"cpp\" and unread = \"yes\""
+
+# --- C++ ---
+https://herbsutter.com/feed/ "cpp" "~Herb Sutter"
+https://isocpp.org/blog/rss "cpp" "~isocpp.org"
+https://quuxplusone.github.io/blog/feed.xml "cpp" "~Arthur O'Dwyer"
+https://brevzin.github.io/feed.xml "cpp" "~Barry Revzin"
+https://www.modernescpp.com/index.php/feed/ "cpp" "~Modernes C++"
+https://devblogs.microsoft.com/oldnewthing/feed "cpp" "systems" "~The Old New Thing"
+
+# --- algorithms / performance ---
+https://cp-algorithms.com/feed_rss_created.xml "dsa" "~cp-algorithms (new articles)"
+https://lemire.me/blog/feed/ "dsa" "perf" "~Daniel Lemire"
+https://research.swtch.com/feed.atom "dsa" "systems" "~Russ Cox"
+https://blog.codingconfessions.com/feed "perf" "systems" "~Confessions of a Code Addict"
+https://eli.thegreenplace.net/feeds/all.atom.xml "systems" "~Eli Bendersky"
+
+# --- systems & distributed systems ---
+https://danluu.com/atom.xml "systems" "~Dan Luu"
+https://jvns.ca/atom.xml "systems" "~Julia Evans"
+https://martin.kleppmann.com/feed.rss "distsys" "~Martin Kleppmann"
+https://brooker.co.za/blog/rss.xml "distsys" "~Marc Brooker"
+https://muratbuffalo.blogspot.com/feeds/posts/default "distsys" "~Murat Demirbas"
+https://www.allthingsdistributed.com/index.xml "distsys" "~Werner Vogels"
+https://matklad.github.io/feed.xml "systems" "~matklad"
+https://www.hillelwayne.com/index.xml "systems" "~Hillel Wayne"
+https://fabiensanglard.net/rss.xml "systems" "~Fabien Sanglard"
+https://www.brendangregg.com/blog/rss.xml "perf" "~Brendan Gregg"
+
+# --- system design / industry ---
+https://blog.bytebytego.com/feed "design" "~ByteByteGo"
+https://newsletter.pragmaticengineer.com/feed "design" "~The Pragmatic Engineer"
+https://netflixtechblog.com/feed "eng" "~Netflix Tech Blog"
+https://blog.cloudflare.com/rss/ "eng" "~Cloudflare"
+https://discord.com/blog/rss.xml "eng" "~Discord"
+https://blog.janestreet.com/feed.xml "eng" "~Jane Street"
+https://engineering.fb.com/feed/ "eng" "~Meta Engineering"
+https://github.blog/engineering/feed/ "eng" "~GitHub Engineering"
+https://stripe.com/blog/feed.rss "eng" "~Stripe"
+
+# --- news (only what clears the bar) ---
+https://hnrss.org/frontpage?points=300 "news" "~HN 300+"
+https://lwn.net/headlines/rss "news" "systems" "~LWN"
+https://simonwillison.net/atom/everything/ "news" "~Simon Willison"

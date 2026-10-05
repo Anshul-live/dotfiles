@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# qutebrowser userscript: send this problem page (Codeforces, CSES, LeetCode, AtCoder) to
+# cp-fetch, which saves the samples and opens the problem in tmux/nvim (bound to ,c).
+# Linked into ~/.qutebrowser/userscripts/ by install.sh.
+set -uo pipefail
+# qutebrowser started from the Dock has launchd's bare PATH; cp-fetch needs brew's tools
+export PATH="$HOME/.local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+
+msg() { # kind text: one quoted arg, no ';;' (would split the command), no newlines
+  local t=${2//$'\n'/ }
+  t=${t//;;/;}
+  printf "message-%s 'cp: %s'\n" "$1" "${t//\'/’}" >>"$QUTE_FIFO"
+}
+
+cpf="$HOME/.local/bin/cp-fetch"
+[[ -x $cpf ]] || { msg error "$cpf not found (run install.sh)"; exit 1; }
+
+msg info "fetching ${QUTE_TITLE:-$QUTE_URL}"
+if out=$("$cpf" "$QUTE_URL" 2>&1); then
+  msg info "ready: ${QUTE_TITLE:-$QUTE_URL}"
+else
+  msg error "$(tail -n 1 <<<"$out")"
+fi

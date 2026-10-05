@@ -1,0 +1,73 @@
+# khal / ikhal: calendar, window "cal" of the tmux session "comms" (bin/ws-session).
+# install.sh links this to ~/.config/khal/config. Events are the .ics files vdirsyncer
+# (vdirsyncer/config) syncs from Google into ~/.local/share/calendars/<calendar>/.
+
+[calendars]
+# one khal calendar per Google calendar; name and colour come from Google (vdirsyncer metasync)
+[[google]]
+path = ~/.local/share/calendars/*
+type = discover
+color = auto
+# lets ikhal show your own accept/decline status on invites
+addresses = itsanshulkumar03@gmail.com
+
+[locale]
+# Monday first (ISO weeks, India); 24h clock; day before month everywhere
+firstweekday = 0
+timeformat = %H:%M
+dateformat = %d %b
+longdateformat = %d %b %Y
+datetimeformat = %d %b %H:%M
+longdatetimeformat = %d %b %Y %H:%M
+weeknumbers = right
+
+[default]
+# new events go to the main Google calendar, whose folder is named after the address
+default_calendar = itsanshulkumar03@gmail.com
+highlight_event_days = True
+timedelta = 7d
+default_event_alarm = 10m
+
+[view]
+frame = color
+dynamic_days = True
+min_calendar_display = 2
+agenda_day_format = "{bold}{name}, {date-long}{reset}"
+
+[highlight_days]
+method = fg
+default_color = '#6e94b2'
+
+# ikhal colours: vague. Each entry: low-colour fg, bg, mono, then 24-bit fg, bg (quoted).
+[palette]
+header = white, black, bold, '#cdcdcd', '#141415'
+footer = white, black, '', '#606079', '#141415'
+line header = white, black, bold, '#6e94b2', '#141415'
+alt header = white, '', bold, '#cdcdcd', ''
+bright = white, '', bold, '#cdcdcd', ''
+list = white, '', '', '#cdcdcd', ''
+list focused = white, dark gray, bold, '#cdcdcd', '#333738'
+edit = white, '', '', '#cdcdcd', '#252530'
+edit focus = white, dark gray, bold, '#cdcdcd', '#333738'
+button = white, dark gray, '', '#cdcdcd', '#252530'
+button focused = black, light blue, bold, '#141415', '#6e94b2'
+reveal focus = white, dark gray, bold, '#cdcdcd', '#333738'
+today = yellow, '', bold, '#f3be7c', ''
+today focus = black, yellow, bold, '#141415', '#f3be7c'
+date header = light gray, '', '', '#606079', ''
+date header focused = white, dark gray, bold, '#cdcdcd', '#333738'
+date header selected = white, '', bold, '#aeaed1', '#252530'
+dayname = light gray, '', '', '#606079', ''
+monthname = light gray, '', '', '#bb9dbd', ''
+weeknumber_right = dark gray, '', '', '#606079', ''
+alert = white, dark red, bold, '#141415', '#d8647e'
+mark = black, dark green, '', '#141415', '#7fa563'
+frame = dark gray, '', '', '#252530', ''
+frame focus = light gray, '', '', '#606079', ''
+frame focus color = light blue, '', '', '#6e94b2', ''
+frame focus top = light magenta, '', '', '#bb9dbd', ''
+editbx = white, dark gray, '', '#cdcdcd', '#252530'
+editcp = black, light gray, standout, '#141415', '#cdcdcd'
+popupbg = white, black, bold, '#cdcdcd', '#252530'
+popupper = white, dark gray, '', '#cdcdcd', '#333738'
+caption = white, '', bold, '#6e94b2', ''

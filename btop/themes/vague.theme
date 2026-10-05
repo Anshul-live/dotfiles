@@ -1,0 +1,57 @@
+# btop theme: vague (same palette as Ghostty/nvim/tmux). Linked with btop/ -> ~/.config/btop.
+# Gradients run green -> yellow -> red for "how busy", blue -> cyan -> magenta for quantities.
+
+theme[main_bg]="#141415"
+theme[main_fg]="#cdcdcd"
+theme[title]="#cdcdcd"
+# hotkey letters in box titles
+theme[hi_fg]="#e0a363"
+theme[selected_bg]="#333738"
+theme[selected_fg]="#cdcdcd"
+theme[inactive_fg]="#606079"
+theme[graph_text]="#606079"
+theme[meter_bg]="#252530"
+theme[proc_misc]="#aeaed1"
+
+# box outlines stay quiet, like tmux/nvim borders
+theme[cpu_box]="#606079"
+theme[mem_box]="#606079"
+theme[net_box]="#606079"
+theme[proc_box]="#606079"
+theme[div_line]="#252530"
+
+theme[temp_start]="#7fa563"
+theme[temp_mid]="#f3be7c"
+theme[temp_end]="#d8647e"
+
+theme[cpu_start]="#7fa563"
+theme[cpu_mid]="#f3be7c"
+theme[cpu_end]="#d8647e"
+
+theme[free_start]="#6e94b2"
+theme[free_mid]="#aeaed1"
+theme[free_end]="#aeaed1"
+
+theme[cached_start]="#6e94b2"
+theme[cached_mid]="#aeaed1"
+theme[cached_end]="#bb9dbd"
+
+theme[available_start]="#7fa563"
+theme[available_mid]="#7fa563"
+theme[available_end]="#aeaed1"
+
+theme[used_start]="#f3be7c"
+theme[used_mid]="#e0a363"
+theme[used_end]="#d8647e"
+
+theme[download_start]="#6e94b2"
+theme[download_mid]="#aeaed1"
+theme[download_end]="#bb9dbd"
+
+theme[upload_start]="#7fa563"
+theme[upload_mid]="#f3be7c"
+theme[upload_end]="#e0a363"
+
+theme[process_start]="#7fa563"
+theme[process_mid]="#f3be7c"
+theme[process_end]="#d8647e"

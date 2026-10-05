@@ -1,0 +1,26 @@
+# aerc accounts: Gmail over IMAP/SMTP with an app password from Bitwarden (rbw). No secrets here.
+# install.sh copies (not links) this to ~/Library/Preferences/aerc/accounts.conf with mode 0600 if
+# it's missing: aerc refuses a group/world-readable accounts.conf, and git can't store 0600.
+# After editing this template, re-copy by hand (install.sh never overwrites the live file).
+#
+# Needs: Bitwarden item "Gmail app password" (password field = the 16-char Google app password,
+# Google account > Security > 2-Step Verification > App passwords). rbw must be unlocked; aerc
+# asks once per start (source) and per send (outgoing, cached below).
+
+[Gmail]
+# '@' in the username must be URL-encoded
+source = imaps://itsanshulkumar03%40gmail.com@imap.gmail.com:993
+source-cred-cmd = rbw get "Gmail app password"
+outgoing = smtps://itsanshulkumar03%40gmail.com@smtp.gmail.com:465
+outgoing-cred-cmd = rbw get "Gmail app password"
+outgoing-cred-cmd-cache = true
+from = Anshul Kumar <itsanshulkumar03@gmail.com>
+default = INBOX
+# no copy-to: Gmail files sent mail itself over SMTP, copying would duplicate it
+archive = [Gmail]/All Mail
+postpone = [Gmail]/Drafts
+# Gmail's IMAP shows every label as a folder: these first, in this order
+folders-sort = INBOX,[Gmail]/Starred,[Gmail]/Sent Mail,[Gmail]/Drafts,[Gmail]/All Mail,[Gmail]/Spam,[Gmail]/Trash
+# IDLE pushes the open folder; poll the rest
+check-mail = 5m
+cache-headers = true

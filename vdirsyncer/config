@@ -1,0 +1,29 @@
+# vdirsyncer: syncs Google Calendar <-> local .ics files that khal/ikhal read (window "cal" of
+# the tmux session "comms"). install.sh links this to ~/.config/vdirsyncer/config.
+# No secrets here: the OAuth client id/secret come from Bitwarden through rbw (absolute path,
+# since launchd runs `vdirsyncer sync` without Homebrew on PATH); the OAuth token lives in
+# ~/.local/share/vdirsyncer. First run: `vdirsyncer discover google && vdirsyncer sync`.
+
+[general]
+status_path = "~/.local/share/vdirsyncer/status/"
+
+[pair google]
+a = "google_remote"
+b = "google_local"
+# every calendar ticked at calendar.google.com/calendar/syncselect, one folder each
+collections = ["from a", "from b"]
+# the calendar's colour and name come from Google; khal shows both
+metadata = ["color", "displayname"]
+# an event edited on both sides: Google wins
+conflict_resolution = "a wins"
+
+[storage google_remote]
+type = "google_calendar"
+token_file = "~/.local/share/vdirsyncer/google_token"
+client_id.fetch = ["command", "/opt/homebrew/bin/rbw", "get", "vdirsyncer google client", "--field", "username"]
+client_secret.fetch = ["command", "/opt/homebrew/bin/rbw", "get", "vdirsyncer google client"]
+
+[storage google_local]
+type = "filesystem"
+path = "~/.local/share/calendars/"
+fileext = ".ics"

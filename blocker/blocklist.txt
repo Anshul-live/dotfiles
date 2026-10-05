@@ -1,0 +1,84 @@
+# Seed list for the distraction blocker (see blocker/install.sh).
+# One domain per line, '#' starts a comment. Each entry is blocked along with its
+# www. form, for IPv4 and IPv6. Subdomains aren't covered automatically (hosts
+# files have no wildcards), so the ones that serve the same feed are listed.
+# After install the root copy in /usr/local/etc/blocker/ is canonical: change it
+# with `block add` / `block remove`, not by editing this file.
+# YouTube is deliberately absent: its feed/Shorts are hidden inside qutebrowser.
+
+# --- social feeds ------------------------------------------------------------
+twitter.com
+mobile.twitter.com
+api.twitter.com
+x.com
+mobile.x.com
+api.x.com
+# t.co / twimg.com left alone: they only matter once x.com loads, and blocking
+# them breaks tweet links and embeds on other sites.
+
+instagram.com
+i.instagram.com
+
+reddit.com
+old.reddit.com
+new.reddit.com
+sh.reddit.com
+m.reddit.com
+i.reddit.com
+np.reddit.com
+oauth.reddit.com
+gateway.reddit.com
+redd.it
+i.redd.it
+v.redd.it
+preview.redd.it
+
+facebook.com
+m.facebook.com
+mobile.facebook.com
+mbasic.facebook.com
+touch.facebook.com
+web.facebook.com
+fb.com
+fb.watch
+# messenger.com / whatsapp.com left alone: messaging, not a feed.
+
+threads.net
+threads.com
+
+tiktok.com
+m.tiktok.com
+vm.tiktok.com
+vt.tiktok.com
+
+# --- streaming: international ------------------------------------------------
+netflix.com
+primevideo.com
+hulu.com
+disneyplus.com
+max.com
+hbomax.com
+play.max.com
+peacocktv.com
+paramountplus.com
+crunchyroll.com
+mubi.com
+discoveryplus.com
+twitch.tv
+m.twitch.tv
+kick.com
+
+# --- streaming: India ----------------------------------------------------------
+hotstar.com
+jiohotstar.com
+jiocinema.com
+sonyliv.com
+zee5.com
+mxplayer.in
+voot.com
+altt.co.in
+sunnxt.com
+aha.video
+hoichoi.tv
+erosnow.com
+discoveryplus.in

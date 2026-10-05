@@ -1,0 +1,484 @@
+#!/usr/bin/env python3
+# cp-fetch: turn a problem URL into a ready-to-solve folder and open it.
+#
+#   cp-fetch <url>                 fetch, write files, open in tmux session "dsa"
+#   cp-fetch <url> --html FILE     parse a saved page instead of downloading it
+#   cp-fetch <url> --no-open       only write files (testing / scripting)
+#
+# Judges: Codeforces (problemset, contest, gym), CSES, AtCoder, LeetCode.
+# Layout: ~/Desktop/code/dsa/<judge>/<set>/<id>-<slug>/
+#   main.cpp       template (never overwritten on a re-fetch)
+#   tests/N.in/.out  samples (re-fetch refreshes these, extra tests you added stay)
+#   problem.md     title, URL, limits, statement as text
+# LeetCode is function-based: solution.cpp gets LeetCode's C++ stub and the
+# examples go into problem.md (no stdin tests).
+#
+# Codeforces serves a Cloudflare challenge to scripts. When run from a
+# qutebrowser userscript, $QUTE_HTML (the page you're looking at) is parsed
+# instead, so no download is needed. Otherwise the folder is still made, with
+# the title from the Codeforces API and no samples.
+#
+# Runs without a TTY (qutebrowser): prints one line, exits non-zero on failure.
+# CP_ROOT overrides the base folder.
+import html
+import json
+import os
+import re
+import shlex
+import shutil
+import subprocess
+import sys
+import urllib.error
+import urllib.request
+
+ROOT = os.path.expanduser(os.environ.get("CP_ROOT", "~/Desktop/code/dsa"))
+SESSION = "dsa"
+UA = (
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
+    "(KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
+)
+# userscripts inherit qutebrowser's minimal PATH; tmux/w3m/aerospace live here
+os.environ["PATH"] = os.environ.get("PATH", "/usr/bin:/bin") + ":/opt/homebrew/bin:/usr/local/bin"
+
+TEMPLATE = """\
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
+#ifdef LOCAL
+#define dbg(x) cerr << #x << " = " << (x) << '\\n'
+#else
+#define dbg(x)
+#endif
+
+void solve() {
+}
+
+int main() {
+  ios::sync_with_stdio(false);
+  cin.tie(nullptr);
+  int t = 1;
+  // cin >> t; // multi-test
+  while (t--) solve();
+}
+"""
+
+# Apple clang has no <bits/stdc++.h>; this stand-in lives in <ROOT>/include and
+# reaches clang/clangd through CPLUS_INCLUDE_PATH (set by nvim/lua/plugins/cp.lua)
+STDCXX = """\
+// <bits/stdc++.h> for clang/libc++ (written by cp-fetch): every standard header.
+#pragma once
+#include <cassert>
+#include <cctype>
+#include <cfloat>
+#include <climits>
+#include <cmath>
+#include <cstdint>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <ctime>
+#include <algorithm>
+#include <array>
+#include <atomic>
+#include <bitset>
+#include <chrono>
+#include <complex>
+#include <deque>
+#include <functional>
+#include <fstream>
+#include <iomanip>
+#include <iostream>
+#include <iterator>
+#include <limits>
+#include <list>
+#include <map>
+#include <memory>
+#include <numeric>
+#include <optional>
+#include <queue>
+#include <random>
+#include <set>
+#include <sstream>
+#include <stack>
+#include <string>
+#include <string_view>
+#include <tuple>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <variant>
+#include <vector>
+#if __cplusplus >= 202002L
+#include <bit>
+#include <compare>
+#include <concepts>
+#include <numbers>
+#include <ranges>
+#include <span>
+#endif
+"""
+
+
+class Fail(Exception):
+    pass
+
+
+# ── helpers ──────────────────────────────────────────────────────────────────
+
+
+def get(url, data=None, headers=None, timeout=15):
+    h = {"User-Agent": UA, "Accept-Language": "en-US,en;q=0.9"}
+    h.update(headers or {})
+    req = urllib.request.Request(url, data=data, headers=h)
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        return r.read().decode("utf-8", "replace")
+
+
+def slugify(s, limit=40):
+    s = re.sub(r"[^a-z0-9]+", "-", s.lower()).strip("-")
+    return s[:limit].rstrip("-")
+
+
+def div(src, cls):
+    """Inner HTML of the first <div class="cls ..."> (balanced, so nested divs are kept)."""
+    m = re.search(r'<div class="%s(?:\s[^"]*)?"[^>]*>' % re.escape(cls), src)
+    if not m:
+        return ""
+    depth, i = 1, m.end()
+    for t in re.finditer(r"<(/?)div\b[^>]*>", src[i:]):
+        depth += -1 if t.group(1) else 1
+        if depth == 0:
+            return src[i : i + t.start()]
+    return src[i:]
+
+
+def pre_text(fragment):
+    """Text of a <pre> sample: Codeforces wraps each line in a div or ends it with <br>."""
+    s = re.sub(r"<br\s*/?>", "\n", fragment)
+    s = re.sub(r"</div>", "\n", s)
+    s = re.sub(r"<[^>]+>", "", s)
+    s = html.unescape(s).replace("\r", "")
+    lines = [l.rstrip() for l in s.split("\n")]
+    return "\n".join(lines).strip("\n") + "\n"
+
+
+def to_text(fragment):
+    """HTML -> readable text: w3m when installed, crude tag stripping otherwise."""
+    if shutil.which("w3m"):
+        try:
+            out = subprocess.run(
+                ["w3m", "-dump", "-T", "text/html", "-cols", "100", "-I", "UTF-8", "-O", "UTF-8"],
+                input=fragment.encode(),
+                capture_output=True,
+                timeout=10,
+            )
+            if out.returncode == 0:
+                return out.stdout.decode("utf-8", "replace").strip() + "\n"
+        except subprocess.SubprocessError:
+            pass
+    s = re.sub(r"<(script|style)\b.*?</\1>", "", fragment, flags=re.S)
+    s = re.sub(r"<br\s*/?>|</p>|</div>|</h\d>|</li>|</pre>", "\n", s)
+    s = re.sub(r"<li[^>]*>", "- ", s)
+    s = html.unescape(re.sub(r"<[^>]+>", "", s))
+    return re.sub(r"\n{3,}", "\n\n", s).strip() + "\n"
+
+
+def blocked(page):
+    return "Just a moment" in page[:3000] or "browser is being checked" in page[:3000]
+
+
+def page_html(url, html_file):
+    if html_file:
+        with open(html_file, encoding="utf-8", errors="replace") as f:
+            return f.read()
+    return get(url)
+
+
+def same_page(a, b):
+    norm = lambda u: re.sub(r"^https?://(www\.|m\d\.)?", "", u.split("#")[0].split("?")[0]).rstrip("/")
+    return norm(a) == norm(b)
+
+
+# ── judges ───────────────────────────────────────────────────────────────────
+# each returns a dict: judge, set, id, title, limits, statement, samples [(in, out)]
+
+
+def codeforces(url, m, html_file):
+    gym, contest, index = m.group(1) == "gym", m.group(2), m.group(3).upper()
+    p = {"judge": "codeforces", "set": ("gym-" if gym else "") + contest, "id": contest + index,
+         "title": "", "limits": "", "statement": "", "samples": [], "warn": ""}
+    page = None
+    try:
+        page = page_html(url, html_file)
+        if blocked(page):
+            page = None
+    except (urllib.error.URLError, OSError):
+        page = None
+
+    if page is None:
+        # Cloudflare: keep going with the name from the API so the folder still exists
+        p["warn"] = "Codeforces blocked the download (Cloudflare); run it from qutebrowser or pass --html"
+        if not gym:
+            try:
+                data = json.loads(get("https://codeforces.com/api/problemset.problems", timeout=20))
+                for q in data.get("result", {}).get("problems", []):
+                    if str(q.get("contestId")) == contest and q.get("index") == index:
+                        p["title"] = index + ". " + q["name"]
+                        break
+            except (urllib.error.URLError, OSError, ValueError):
+                pass
+        return p
+
+    stmt = div(page, "problem-statement")
+    if not stmt:
+        raise Fail("no problem statement on that page (wrong URL, or not logged in for gym?)")
+    header = div(stmt, "header")
+    p["title"] = to_text(div(header, "title")).strip()
+    lim = []
+    for cls in ("time-limit", "memory-limit"):
+        t = re.sub(r'<div class="property-title">.*?</div>', "", div(header, cls))
+        lim.append(to_text(t).strip())
+    p["limits"] = " · ".join(x for x in lim if x)
+    for t in re.finditer(r'<div class="sample-test">', stmt):
+        block = div(stmt[t.start():], "sample-test")
+        ins = re.findall(r'<div class="input">.*?<pre[^>]*>(.*?)</pre>', block, re.S)
+        outs = re.findall(r'<div class="output">.*?<pre[^>]*>(.*?)</pre>', block, re.S)
+        p["samples"] += [(pre_text(a), pre_text(b)) for a, b in zip(ins, outs)]
+    body = stmt.replace(header, "", 1)
+    body = re.sub(r'<div class="sample-tests">.*?(?=<div class="note">|$)', "", body, flags=re.S)
+    p["statement"] = to_text(body).replace("$$$", "$")
+    return p
+
+
+def cses(url, m, html_file):
+    page = page_html(url, html_file)
+    title = re.search(r"<h1>(.*?)</h1>", page)
+    cat = re.search(r'<div class="nav sidebar">\s*<h4>(.*?)</h4>', page)
+    body = re.search(r'<div class="md">(.*?)</div>\s*</div>', page, re.S)
+    if not title or not body:
+        raise Fail("couldn't read the CSES task page")
+    lim = re.findall(r"<li><b>(Time|Memory) limit:</b>\s*(.*?)</li>", page)
+    samples = re.findall(
+        r"<p>Input:</p>\s*<pre>(.*?)</pre>\s*<p>Output:</p>\s*<pre>(.*?)</pre>", body.group(1), re.S
+    )
+    return {
+        "judge": "cses",
+        "set": slugify(html.unescape(cat.group(1))) if cat else "problemset",
+        "id": m.group(1),
+        "title": html.unescape(title.group(1)),
+        "limits": " · ".join(v for _, v in lim),
+        "statement": to_text(body.group(1)),
+        "samples": [(pre_text(a), pre_text(b)) for a, b in samples],
+    }
+
+
+def atcoder(url, m, html_file):
+    page = page_html(url, html_file)
+    title = re.search(r"<title>(.*?)</title>", page)
+    lim = re.search(r"Time Limit:\s*([^/<]+?)\s*/\s*Memory Limit:\s*([^<\n]+)", page)
+    en = re.search(r'<span class="lang-en">(.*?)</span>\s*</div>\s*</div>', page, re.S)
+    part = en.group(1) if en else page
+    ins = re.findall(r"<h3>(?:Sample Input|入力例)\s*(\d+)</h3>\s*<pre[^>]*>(.*?)</pre>", part, re.S)
+    outs = dict(re.findall(r"<h3>(?:Sample Output|出力例)\s*(\d+)</h3>\s*<pre[^>]*>(.*?)</pre>", part, re.S))
+    samples = [(pre_text(a), pre_text(outs[n])) for n, a in ins if n in outs]
+    stmt = re.split(r"<h3>(?:Sample Input|入力例)", part)[0]
+    if not title:
+        raise Fail("couldn't read the AtCoder task page")
+    return {
+        "judge": "atcoder",
+        "set": m.group(1),
+        "id": m.group(2),
+        "title": html.unescape(title.group(1)).split(" - ", 1)[-1] if " - " in title.group(1) else html.unescape(title.group(1)),
+        "limits": " · ".join(lim.groups()).strip() if lim else "",
+        "statement": to_text(stmt),
+        "samples": samples,
+    }
+
+
+def leetcode(url, m, _html_file):
+    slug = m.group(1)
+    query = """query q($titleSlug: String!) { question(titleSlug: $titleSlug) {
+      questionFrontendId title difficulty content exampleTestcases
+      codeSnippets { langSlug code } } }"""
+    body = json.dumps({"query": query, "variables": {"titleSlug": slug}}).encode()
+    data = json.loads(get("https://leetcode.com/graphql", data=body, headers={
+        "Content-Type": "application/json", "Referer": url}))
+    q = (data.get("data") or {}).get("question")
+    if not q:
+        raise Fail("LeetCode has no problem '%s'" % slug)
+    if not q.get("content"):
+        raise Fail("LeetCode returned no statement (premium problem?)")
+    snippet = next((s["code"] for s in q.get("codeSnippets") or [] if s["langSlug"] == "cpp"), "")
+    return {
+        "judge": "leetcode",
+        "set": q["difficulty"].lower(),
+        "id": q["questionFrontendId"],
+        "title": q["questionFrontendId"] + ". " + q["title"],
+        "slug": slug,
+        "limits": q["difficulty"],
+        "statement": to_text(q["content"]),
+        "samples": [],
+        "snippet": snippet,
+        "examples": q.get("exampleTestcases") or "",
+    }
+
+
+JUDGES = [
+    (r"codeforces\.com/(problemset/problem|contest|gym)/(\d+)/(?:problem/)?([A-Za-z]\d*)", codeforces),
+    (r"cses\.fi/problemset/task/(\d+)", cses),
+    (r"atcoder\.jp/contests/([^/]+)/tasks/([^/?#]+)", atcoder),
+    (r"leetcode\.(?:com|cn)/problems/([^/?#]+)", leetcode),
+]
+
+
+# ── writing ──────────────────────────────────────────────────────────────────
+
+
+def ensure_stdcxx():
+    path = os.path.join(ROOT, "include", "bits", "stdc++.h")
+    if not os.path.exists(path):
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "w") as f:
+            f.write(STDCXX)
+
+
+def write(p, url):
+    ensure_stdcxx()
+    judge = p["judge"]
+    name = p["id"]
+    title_slug = p.get("slug") or slugify(re.sub(r"^[A-Za-z0-9]+\.\s*", "", p["title"]))
+    if title_slug:
+        name += "-" + title_slug
+    d = os.path.join(ROOT, judge, p["set"], name)
+    # a re-fetch may see the title in another language: reuse whatever folder has this id
+    parent = os.path.dirname(d)
+    if os.path.isdir(parent):
+        for e in sorted(os.listdir(parent)):
+            if e == p["id"] or e.startswith(p["id"] + "-"):
+                d = os.path.join(parent, e)
+                break
+    os.makedirs(d, exist_ok=True)
+
+    lc = judge == "leetcode"
+    src = os.path.join(d, "solution.cpp" if lc else "main.cpp")
+    if not os.path.exists(src):
+        with open(src, "w") as f:
+            if lc:
+                f.write("#include <bits/stdc++.h>\nusing namespace std;\n\n")
+                f.write((p["snippet"] or "class Solution {\npublic:\n};").rstrip() + "\n")
+                # LeetCode never defines LOCAL, so this main is ignored on submit
+                f.write("\n#ifdef LOCAL\nint main() {\n  Solution s;\n}\n#endif\n")
+            else:
+                f.write(TEMPLATE)
+
+    if not lc:
+        tdir = os.path.join(d, "tests")
+        os.makedirs(tdir, exist_ok=True)
+        for i, (a, b) in enumerate(p["samples"], 1):
+            for ext, text in (("in", a), ("out", b)):
+                with open(os.path.join(tdir, "%d.%s" % (i, ext)), "w") as f:
+                    f.write(text)
+
+    lines = ["# " + (p["title"] or p["id"]), "", url]
+    if p.get("limits"):
+        lines.append(p["limits"])
+    lines.append("")
+    if p.get("statement"):
+        lines += [p["statement"].rstrip(), ""]
+    if lc and p.get("examples"):
+        lines += ["## Example inputs", "", "```", p["examples"].rstrip(), "```", ""]
+    with open(os.path.join(d, "problem.md"), "w") as f:
+        f.write("\n".join(lines))
+    return d, os.path.basename(src)
+
+
+# ── opening ──────────────────────────────────────────────────────────────────
+
+
+def tmux(*args, check=True):
+    r = subprocess.run(["tmux", *args], capture_output=True, text=True)
+    if check and r.returncode != 0:
+        raise Fail("tmux " + args[0] + ": " + r.stderr.strip())
+    return r.stdout
+
+
+def open_in_tmux(d, src, win):
+    if not shutil.which("tmux"):
+        raise Fail("tmux not found")
+    # cd inside the command so the session itself (and new windows) start in the dsa root
+    cmd = "cd %s && exec nvim %s" % (shlex.quote(d), src)
+    if subprocess.run(["tmux", "has-session", "-t", "=" + SESSION], capture_output=True).returncode != 0:
+        os.makedirs(ROOT, exist_ok=True)
+        tmux("new-session", "-d", "-s", SESSION, "-c", ROOT, "-n", win, cmd)
+    else:
+        target = None
+        for line in tmux("list-windows", "-t", "=" + SESSION, "-F", "#{window_id} #{window_name}").splitlines():
+            wid, _, wname = line.partition(" ")
+            if wname == win:
+                target = wid
+                break
+        if target is None:
+            target = tmux("new-window", "-P", "-F", "#{window_id}", "-t", "=" + SESSION + ":", "-c", ROOT, "-n", win, cmd).strip()
+        tmux("select-window", "-t", target)
+
+    clients = [l.split(" ", 1) for l in tmux("list-clients", "-F", "#{client_name} #{session_name}", check=False).splitlines() if l]
+    if not any(s == SESSION for _, s in clients):
+        if clients:
+            tmux("switch-client", "-c", clients[0][0], "-t", "=" + SESSION, check=False)
+        else:
+            script = ('tell application "Ghostty" to new window with configuration '
+                      '{command:"/bin/zsh -lc \\"tmux attach -t %s; exec zsh -l\\""}' % SESSION)
+            subprocess.run(["osascript", "-e", script], capture_output=True)
+    if shutil.which("aerospace"):
+        subprocess.run(["aerospace", "workspace", "T"], capture_output=True)
+
+
+def main(argv):
+    args = [a for a in argv if not a.startswith("--")]
+    html_file = None
+    if "--html" in argv:
+        i = argv.index("--html")
+        html_file = argv[i + 1] if i + 1 < len(argv) else None
+        args = [a for a in args if a != html_file]
+    if len(args) != 1:
+        raise Fail("usage: cp-fetch <problem-url> [--html FILE] [--no-open]")
+    url = args[0].strip()
+    # from a qutebrowser userscript: reuse the page it already rendered (gets past Cloudflare)
+    if not html_file and os.environ.get("QUTE_HTML") and same_page(os.environ.get("QUTE_URL", ""), url):
+        html_file = os.environ["QUTE_HTML"]
+
+    for pattern, fn in JUDGES:
+        m = re.search(pattern, url)
+        if m:
+            p = fn(url, m, html_file)
+            break
+    else:
+        raise Fail("unsupported URL (Codeforces, CSES, AtCoder, LeetCode): " + url)
+
+    d, src = write(p, url)
+    win = ("lc" + p["id"]) if p["judge"] == "leetcode" else p["id"]
+    if "--no-open" not in argv:
+        open_in_tmux(d, src, win)
+
+    n = len(p["samples"])
+    what = "stub + examples in problem.md" if p["judge"] == "leetcode" else "%d sample%s" % (n, "" if n == 1 else "s")
+    short = d.replace(os.path.expanduser("~"), "~", 1)
+    msg = "cp-fetch: %s %s — %s → %s" % (p["judge"], p["id"], what, short)
+    if p.get("warn"):
+        msg += " (%s)" % p["warn"]
+    print(msg)
+
+
+if __name__ == "__main__":
+    try:
+        main(sys.argv[1:])
+    except Fail as e:
+        print("cp-fetch: " + str(e), file=sys.stderr)
+        sys.exit(1)
+    except urllib.error.HTTPError as e:
+        print("cp-fetch: HTTP %d from %s" % (e.code, e.url), file=sys.stderr)
+        sys.exit(1)
+    except (urllib.error.URLError, OSError) as e:
+        print("cp-fetch: network error: %s" % getattr(e, "reason", e), file=sys.stderr)
+        sys.exit(1)

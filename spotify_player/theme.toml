@@ -1,0 +1,47 @@
+# spotify_player theme: vague (same palette as Ghostty/nvim/tmux). Selected by theme = "vague"
+# in app.toml; linked with spotify_player/ -> ~/.config/spotify-player.
+
+[[themes]]
+name = "vague"
+
+[themes.palette]
+background = "#141415"
+foreground = "#cdcdcd"
+black = "#252530"
+red = "#d8647e"
+green = "#7fa563"
+yellow = "#f3be7c"
+blue = "#6e94b2"
+magenta = "#bb9dbd"
+cyan = "#aeaed1"
+white = "#cdcdcd"
+bright_black = "#606079"
+bright_red = "#e08398"
+bright_green = "#99b782"
+bright_yellow = "#f5cb96"
+bright_blue = "#8ba9c1"
+bright_magenta = "#c9b1ca"
+bright_cyan = "#bebeda"
+bright_white = "#d7d7d7"
+
+[themes.component_style]
+block_title = { fg = "#6e94b2", modifiers = ["Bold"] }
+border = { fg = "#606079" }
+playback_status = { fg = "#7fa563", modifiers = ["Bold"] }
+playback_track = { fg = "#cdcdcd", modifiers = ["Bold"] }
+playback_artists = { fg = "#aeaed1" }
+playback_album = { fg = "#f3be7c" }
+playback_genres = { fg = "#606079", modifiers = ["Italic"] }
+playback_metadata = { fg = "#606079" }
+playback_progress_bar = { fg = "#7fa563" }
+playback_progress_bar_unfilled = { fg = "#252530" }
+current_playing = { fg = "#7fa563", modifiers = ["Bold"] }
+page_desc = { fg = "#aeaed1", modifiers = ["Bold"] }
+playlist_desc = { fg = "#606079" }
+table_header = { fg = "#6e94b2" }
+# nvim's Visual colour, not reversed video
+selection = { bg = "#333738", modifiers = ["Bold"] }
+like = { fg = "#d8647e" }
+lyrics_played = { fg = "#606079" }
+lyrics_playing = { fg = "#7fa563", modifiers = ["Bold"] }
+visualization = { low = "#6e94b2", mid = "#7fa563", high = "#d8647e" }

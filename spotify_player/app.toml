@@ -1,0 +1,41 @@
+# spotify_player: Spotify (Premium) in the terminal, workspace M (tmux session "music", see bin/ws-session).
+# install.sh links spotify_player/ -> ~/.config/spotify-player (note the dash). Written for 0.25.
+# Only non-defaults; full list: github.com/aome510/spotify-player/blob/master/docs/config.md
+
+theme = "vague"
+
+# Own Spotify app = own API quota (the shared default client gets rate limited). The client id
+# isn't a secret (PKCE, no client secret), but it lives in Bitwarden with the rest; absolute
+# path because launchd/tmux shells may not have Homebrew on PATH. Uncomment once the entry exists.
+# client_id_command = { command = "/opt/homebrew/bin/rbw", args = ["get", "Spotify client id"] }
+
+# Built-in player (librespot): this Mac shows up as a Spotify Connect device named below.
+enable_streaming = "Always"
+# Media keys need a hidden window on macOS that steals focus from the terminal at start: off.
+enable_media_control = false
+# a track change shouldn't interrupt; the playback bar and sketchybar already show it
+enable_notify = false
+# 'd' pauses; start quiet instead of resuming whatever played last
+pause_on_startup = true
+
+border_type = "Rounded"
+progress_bar_type = "Line"
+# 13": smaller cover (rows; columns follow the cell aspect), drawn with kitty graphics in Ghostty
+cover_img_width = 4
+genre_num = 1
+playback_format = "{status} {track} • {artists} {liked}\n{album}\n{metadata}"
+playback_metadata_fields = ["shuffle", "repeat", "volume"]
+enable_relative_line_number = true
+
+[device]
+name = "Mac (terminal)"
+device_type = "computer"
+volume = 60
+bitrate = 320
+normalization = true
+autoplay = false
+
+[layout]
+library = { playlist_percent = 40, album_percent = 30 }
+playback_window_position = "Bottom"
+playback_window_height = 5

@@ -1,7 +1,16 @@
 #!/usr/bin/env bash
 # Pick a project, jump into its tmux session.
-# First visit creates the session: window "code" runs nvim (which restores your
-# last session), window "shell" is a terminal in the same folder.
+# First visit creates the session, one full-screen window each:
+#   1 code   nvim (restores your last session)
+#   2 run    a shell for servers, builds, scripts
+#   3 git    lazygit
+# Per-project override: an executable .tmux-layout in the project replaces those
+# windows. It runs as `.tmux-layout <session> <dir>` after the session exists
+# (window 1 is an empty shell named "code", so it can respawn or rename it), e.g.
+#   #!/usr/bin/env bash
+#   tmux respawn-window -k -t "=$1:1" nvim
+#   tmux new-window -dt "=$1:" -c "$2" -n api 'npm run dev'
+# Window 1 is selected afterwards either way.
 #   tmux-sessionizer            fuzzy-pick a project
 #   tmux-sessionizer <dir>      go straight to <dir>
 set -euo pipefail
@@ -28,8 +37,17 @@ fi
 name=$(basename "$selected" | tr '.:' '__')
 
 if ! tmux has-session -t "=$name" 2>/dev/null; then
-  tmux new-session -ds "$name" -c "$selected" -n code nvim
-  tmux new-window -dt "$name" -c "$selected" -n shell
+  if [[ -x $selected/.tmux-layout ]]; then
+    tmux new-session -ds "$name" -c "$selected" -n code
+    (cd "$selected" && ./.tmux-layout "$name" "$selected") ||
+      tmux display-message ".tmux-layout failed in $selected"
+  else
+    tmux new-session -ds "$name" -c "$selected" -n code nvim
+    tmux new-window -dt "=$name:" -c "$selected" -n run
+    # lazygit exits outside a repo; fall back to a shell so the window survives
+    tmux new-window -dt "=$name:" -c "$selected" -n git 'lazygit || exec "$SHELL"'
+  fi
+  tmux select-window -t "=$name:^"
 fi
 
 if [[ -n ${TMUX:-} ]]; then

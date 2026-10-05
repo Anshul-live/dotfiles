@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Calendar sync every 15 min (user LaunchAgent). install.sh copies (not links: launchd can
+  skip symlinked agents at login) this to ~/Library/LaunchAgents/com.anshul.vdirsyncer.plist; load with
+  launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.anshul.vdirsyncer.plist
+  Skips the run while the Bitwarden vault is locked (`rbw unlocked` never prompts), so a locked
+  vault doesn't mean a pinentry popup every 15 minutes. Log: ~/Library/Logs/vdirsyncer.log
+-->
+<plist version="1.0">
+<dict>
+	<key>Label</key>
+	<string>com.anshul.vdirsyncer</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>/bin/sh</string>
+		<string>-c</string>
+		<string>/opt/homebrew/bin/rbw unlocked 2>/dev/null || { echo "$(date '+%F %T') vault locked, skipped"; exit 0; }; date '+%F %T sync'; exec /opt/homebrew/bin/vdirsyncer sync</string>
+	</array>
+	<key>StartInterval</key>
+	<integer>900</integer>
+	<key>RunAtLoad</key>
+	<true/>
+	<key>ProcessType</key>
+	<string>Background</string>
+	<key>StandardOutPath</key>
+	<string>/Users/anshul/Library/Logs/vdirsyncer.log</string>
+	<key>StandardErrorPath</key>
+	<string>/Users/anshul/Library/Logs/vdirsyncer.log</string>
+</dict>
+</plist>

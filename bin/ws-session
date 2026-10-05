@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+# The tmux sessions behind the terminal workspaces. AeroSpace opens a Ghostty window running
+# this (aerospace/setup.sh ensure N|C|M); quitting an app or closing the window loses nothing,
+# the next run re-creates whatever is missing and re-attaches.
+#   ws-session notes      N  nvim on the vault
+#   ws-session comms      C  1 mail (aerc)  2 cal (ikhal)  3 rss (newsboat)
+#   ws-session music      M  spotify_player
+#   ws-session <name> -d  only make sure it's running (music plays in the background)
+set -euo pipefail
+
+VAULT="$HOME/Documents/Devlogs"
+
+# name:command per window, in order
+case "${1:-}" in
+notes) dir=$VAULT windows=("notes:nvim") ;;
+comms) dir=$HOME windows=("mail:aerc" "cal:ikhal" "rss:newsboat") ;;
+music) dir=$HOME windows=("music:spotify_player") ;;
+*)
+	echo "usage: $(basename "$0") notes|comms|music [-d]" >&2
+	exit 1
+	;;
+esac
+name=$1
+
+for w in "${windows[@]}"; do
+	win=${w%%:*} cmd=${w#*:}
+	if ! tmux has-session -t "=$name" 2>/dev/null; then
+		tmux new-session -ds "$name" -c "$dir" -n "$win" "$cmd"
+	elif ! tmux list-windows -t "=$name" -F '#W' | grep -qx "$win"; then
+		tmux new-window -dt "=$name:" -c "$dir" -n "$win" "$cmd"
+	fi
+done
+tmux select-window -t "=$name:${windows[0]%%:*}"
+
+[[ ${2:-} == -d ]] && exit 0
+if [[ -n ${TMUX:-} ]]; then
+	tmux switch-client -t "=$name"
+else
+	tmux attach-session -t "=$name"
+fi

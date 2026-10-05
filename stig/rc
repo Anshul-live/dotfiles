@@ -1,0 +1,11 @@
+# stig: terminal UI for transmission-daemon (runs as a brew service; see report/install.sh).
+# install.sh links stig/ -> ~/.config/stig. stig already has vim keys (j/k, g/G, h/l, /, n).
+# Settings here are stig's own; daemon settings (srv.*, download dir) live in the daemon.
+
+set connect.host localhost
+set connect.port 9091
+set tui.theme vague.theme
+# 13": fewer columns in the torrent list
+set columns.torrents marked,size,downloaded,uploaded,ratio,status,eta,%downloaded,rate-down,rate-up,name
+set tui.poll 2
+set unit.bandwidth byte

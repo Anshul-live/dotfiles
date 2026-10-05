@@ -17,3 +17,12 @@ alias gd="git diff"
 
 alias grep="grep --color=auto"
 alias mysql="mysql --system-command=on"
+
+# yazi: `y` opens it; on quit the shell cd's to where you were in it
+y() {
+  local tmp="$(mktemp -t yazi-cwd.XXXXXX)" cwd
+  command yazi "$@" --cwd-file="$tmp"
+  IFS= read -r -d '' cwd < "$tmp"
+  [[ -n $cwd && $cwd != $PWD && -d $cwd ]] && builtin cd -- "$cwd"
+  rm -f -- "$tmp"
+}

@@ -5,7 +5,7 @@
 sketchybar --add event aerospace_workspace_change
 
 # same order as persistent-workspaces in aerospace.toml
-for i in T B N C V M D 1 2 3; do
+for i in T B R N C M V D 1 2 3; do
 	sketchybar --add item space.$i left \
 		--set space.$i \
 		icon="$i" \

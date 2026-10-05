@@ -1,0 +1,255 @@
+#!/bin/bash
+# Root-side engine of the distraction blocker. blocker/install.sh installs it
+# (root:wheel 755) to /usr/local/libexec/blocker-apply. The LaunchDaemon
+# com.anshul.blocker runs `apply` every 5 min and whenever /etc/hosts changes;
+# `block` runs the rest through sudo.
+#   blocker-apply [apply]           finish due unblocks, rewrite the /etc/hosts block
+#   blocker-apply add <domain>...   block now
+#   blocker-apply queue <domain>    unblock in 24h (domain + its listed subdomains)
+#   blocker-apply cancel <domain>   drop a queued unblock
+#   blocker-apply seed <file>       union a seed list in, minus finished unblocks
+#   blocker-apply norm <domain>     print the normalised form (no root needed)
+# State, root:wheel 644, in /usr/local/etc/blocker/:
+#   blocklist.txt  one domain per line, '#' comments
+#   pending.txt    "domain epoch": queued unblocks
+#   removed.txt    "domain epoch": finished unblocks, so a re-install won't re-seed them
+# Only edits between the marker lines in /etc/hosts; everything else is kept byte for byte.
+# Stays bash 3.2 compatible: launchd runs it with /bin/bash.
+set -euo pipefail
+
+STATE=/usr/local/etc/blocker HOSTS=/etc/hosts NOW=$(date +%s) FLUSH=1
+COOLDOWN=86400
+# test hooks; ignored as root so `sudo BLOCKER_NOW=...` can't skip the cooldown
+if [[ $EUID -ne 0 ]]; then
+  STATE=${BLOCKER_STATE:-$STATE} HOSTS=${BLOCKER_HOSTS:-$HOSTS} NOW=${BLOCKER_NOW:-$NOW}
+  FLUSH=0
+fi
+LIST=$STATE/blocklist.txt PENDING=$STATE/pending.txt REMOVED=$STATE/removed.txt
+BEGIN='# >>> blocker >>>' END='# <<< blocker <<<'
+DOMAIN_RE='^([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9-]{2,63}$'
+
+die() { echo "blocker: $*" >&2; exit 1; }
+log() { echo "$(date '+%F %T') $*"; }
+
+# lowercase, strip scheme/path/port/trailing dot/www.; fail if it isn't a hostname
+norm() {
+  local d
+  d=$(printf '%s' "$1" | tr '[:upper:]' '[:lower:]')
+  d=${d#*://} d=${d%%/*} d=${d%%:*} d=${d%.} d=${d#www.}
+  [[ ${#d} -le 253 && $d =~ $DOMAIN_RE && ${d##*.} == *[a-z]* ]] || return 1
+  printf '%s\n' "$d"
+}
+
+# first field of every non-comment line, lowercased
+entries() { [[ -f $1 ]] && awk '{ sub(/#.*/, "") } NF { print tolower($1) }' "$1"; return 0; }
+
+# stdin -> $1, atomically, 644 root:wheel; a reader never sees a half-written file
+put() {
+  local tmp
+  tmp=$(mktemp "$1.XXXXXX")
+  cat >"$tmp"
+  chmod 644 "$tmp"
+  if [[ $EUID -eq 0 ]]; then chown root:wheel "$tmp"; fi
+  mv -f "$tmp" "$1"
+}
+
+# drop lines of file $1 whose first field is one of the remaining args
+drop() {
+  local f=$1; shift
+  [[ -f $f ]] || return 0
+  printf '%s\n' "$@" | awk 'FILENAME == "-" { del[$1]; next }
+    { l = $0; sub(/#.*/, "", l); split(l, w, " ") } !(tolower(w[1]) in del)' - "$f" | put "$f"
+}
+
+# append stdin to file $1, fixing a missing final newline first
+append() {
+  { if [[ -f $1 ]]; then awk 1 "$1"; fi; cat; } | put "$1"
+}
+
+# list entries equal to $1 or a subdomain of it
+matching() { entries "$LIST" | awk -v d="$1" '$0 == d || substr($0, length($0) - length(d)) == "." d' | awk '!seen[$0]++'; }
+
+pending_has() { entries "$PENDING" | grep -qxF "$1"; }
+
+lock() {
+  local i=0
+  # mkdir is atomic; a crashed run leaves the dir behind, so steal it after ~10s
+  until mkdir "$STATE/.lock" 2>/dev/null; do
+    if ((i++ > 100)); then rm -rf "$STATE/.lock"; i=0; fi
+    sleep 0.1
+  done
+  trap 'rmdir "$STATE/.lock" 2>/dev/null || true' EXIT
+}
+
+need_state() {
+  [[ -d $STATE ]] || die "$STATE missing: run blocker/install.sh"
+  [[ -w $STATE ]] || die "needs root (sudo)"
+}
+
+hosts_block() {
+  echo "$BEGIN"
+  echo "# written by /usr/local/libexec/blocker-apply; hand edits are undone. Use \`block\`."
+  local e
+  entries "$LIST" | while read -r e; do
+    norm "$e" >/dev/null || { echo "blocker: skipping bad entry: $e" >&2; continue; }
+    echo "$e"; echo "www.$e"
+  done | awk '!seen[$0]++ { print "0.0.0.0 " $0; print ":: " $0 }'
+  echo "$END"
+}
+
+new_hosts() {
+  local starts ends s e
+  [[ -f $HOSTS ]] || { hosts_block; return; }
+  starts=$(grep -nxF "$BEGIN" "$HOSTS" | cut -d: -f1 || true)
+  ends=$(grep -nxF "$END" "$HOSTS" | cut -d: -f1 || true)
+  if [[ $starts =~ ^[0-9]+$ && $ends =~ ^[0-9]+$ ]] && ((starts < ends)); then
+    s=$starts e=$ends
+    if ((s > 1)); then sed -n "1,$((s - 1))p" "$HOSTS"; fi
+    hosts_block
+    tail -n "+$((e + 1))" "$HOSTS" # tail keeps a missing final newline as is
+    return
+  fi
+  if [[ -n $starts$ends ]]; then
+    # mangled markers: drop the marker lines and any complete old block, then append fresh
+    awk -v b="$BEGIN" -v e="$END" '$0 == b { inb = 1; buf = ""; next }
+      $0 == e { inb = 0; buf = ""; next }
+      inb { buf = buf $0 "\n"; next } { print }
+      END { printf "%s", buf }' "$HOSTS"
+  else
+    cat "$HOSTS"
+    if [[ -n $(tail -c1 "$HOSTS") ]]; then echo; fi
+    if [[ -s $HOSTS ]]; then echo; fi
+  fi
+  hosts_block
+}
+
+cmd_apply() {
+  need_state
+  lock
+  # 1. unblocks whose 24h are up
+  local due
+  due=$(awk -v now="$NOW" -v cd="$COOLDOWN" '{ sub(/#.*/, "") } NF >= 2 && now - $2 >= cd { print tolower($1) }' \
+    "$PENDING" 2>/dev/null || true)
+  if [[ -n $due ]]; then
+    # shellcheck disable=SC2086 # domains have no spaces or globs
+    set -- $due
+    drop "$LIST" "$@"
+    drop "$PENDING" "$@"
+    drop "$REMOVED" "$@"
+    printf "%s $NOW\n" "$@" | append "$REMOVED"
+    log "unblocked: $*"
+  fi
+  # 2. hosts, only rewritten (and DNS flushed) when something changed
+  local tmp
+  tmp=$(mktemp "$STATE/.hosts.XXXXXX")
+  new_hosts >"$tmp"
+  if [[ -f $HOSTS ]] && cmp -s "$tmp" "$HOSTS"; then
+    rm -f "$tmp"
+  else
+    put "$HOSTS" <"$tmp"
+    rm -f "$tmp"
+    log "hosts updated: $(entries "$LIST" | wc -l | tr -d ' ') domains"
+    if ((FLUSH)); then
+      dscacheutil -flushcache
+      killall -HUP mDNSResponder 2>/dev/null || true
+    fi
+  fi
+  # 3. keep state root-owned even if someone chmods it; heartbeat for `block status`
+  if [[ $EUID -eq 0 ]]; then
+    chown root:wheel "$STATE" "$STATE"/*.txt 2>/dev/null || true
+    chmod 755 "$STATE"; chmod 644 "$STATE"/*.txt 2>/dev/null || true
+  fi
+  touch "$STATE/.heartbeat"
+}
+
+cmd_add() {
+  (($#)) || die "usage: blocker-apply add <domain>..."
+  local a d new=()
+  for a in "$@"; do
+    d=$(norm "$a") || die "not a domain: $a"
+    new+=("$d")
+  done
+  need_state
+  (
+    lock
+    local fresh=()
+    for d in "${new[@]}"; do
+      if entries "$LIST" | grep -qxF "$d"; then echo "already blocked: $d"
+      else fresh+=("$d"); echo "blocked: $d"; fi
+      # blocking again means you changed your mind: forget queued/finished unblocks
+      if pending_has "$d"; then echo "  (cancelled its pending unblock)"; fi
+    done
+    drop "$PENDING" "${new[@]}"
+    drop "$REMOVED" "${new[@]}"
+    if ((${#fresh[@]})); then printf '%s\n' "${fresh[@]}" | append "$LIST"; fi
+  )
+  cmd_apply >/dev/null
+}
+
+cmd_queue() {
+  (($# == 1)) || die "usage: blocker-apply queue <domain>"
+  local d m any=0 at
+  d=$(norm "$1") || die "not a domain: $1"
+  need_state
+  lock
+  at=$(date -r $((NOW + COOLDOWN)) '+%a %d %b %H:%M')
+  for m in $(matching "$d"); do
+    any=1
+    if pending_has "$m"; then echo "already queued: $m"; continue; fi
+    echo "$m $NOW" | append "$PENDING"
+    echo "queued: $m (unblocks $at)"
+  done
+  ((any)) || die "not blocked: $d"
+}
+
+cmd_cancel() {
+  (($# == 1)) || die "usage: blocker-apply cancel <domain>"
+  local d hits
+  d=$(norm "$1") || die "not a domain: $1"
+  need_state
+  lock
+  hits=$(entries "$PENDING" | awk -v d="$d" '$0 == d || substr($0, length($0) - length(d)) == "." d')
+  [[ -n $hits ]] || { echo "nothing pending for $d"; return 0; }
+  # shellcheck disable=SC2086
+  drop "$PENDING" $hits
+  echo "cancelled:" $hits
+}
+
+cmd_seed() {
+  (($# == 1)) && [[ -f $1 ]] || die "usage: blocker-apply seed <file>"
+  need_state
+  lock
+  local e d add=() skipped=()
+  for e in $(entries "$1"); do
+    d=$(norm "$e") || { echo "skipping bad seed entry: $e" >&2; continue; }
+    if entries "$REMOVED" | grep -qxF "$d"; then skipped+=("$d")
+    elif ! entries "$LIST" | grep -qxF "$d"; then add+=("$d"); fi
+  done
+  if [[ ! -s $LIST ]]; then
+    # first install: copy the seed so its comments/grouping survive, minus finished unblocks
+    entries "$REMOVED" | awk 'FILENAME == "-" { rm[$1]; next }
+      { l = $0; sub(/#.*/, "", l); split(l, w, " ") } !(tolower(w[1]) in rm)' - "$1" | put "$LIST"
+    echo "created $LIST"
+  elif ((${#add[@]})); then
+    printf '%s\n' "${add[@]}" | append "$LIST"
+    echo "added from seed: ${add[*]}"
+  else
+    echo "seed: nothing new"
+  fi
+  if ((${#skipped[@]})); then
+    echo "note: not re-adding (unblocked earlier via \`block remove\`): ${skipped[*]}"
+    echo "      \`block add <domain>\` blocks one again."
+  fi
+}
+
+cmd=${1:-apply}
+[[ $# -gt 0 ]] && shift
+case $cmd in
+  apply) cmd_apply ;;
+  add) cmd_add "$@" ;;
+  queue) cmd_queue "$@" ;;
+  cancel) cmd_cancel "$@" ;;
+  seed) cmd_seed "$@" ;;
+  norm) (($# == 1)) || die "usage: blocker-apply norm <domain>"; norm "$1" || die "not a domain: $1" ;;
+  *) die "unknown command: $cmd" ;;
+esac
