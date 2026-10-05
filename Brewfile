@@ -46,7 +46,7 @@ if OS.mac?
   brew "felixkratz/formulae/sketchybar"  # menu bar (workspaces, WINDOW mode badge)
   brew "felixkratz/formulae/borders"     # outline on the focused window
   brew "pinentry-mac"                    # rbw's password prompt
-  cask "karabiner-elements"              # Caps: tap Esc / hold Ctrl; Right Cmd: Hyper (karabiner/)
+  cask "karabiner-elements"              # Caps: tap Esc / hold Ctrl; Left Ctrl: Hyper (karabiner/)
   cask "raycast"                         # clipboard history, snippets, calculator, app launch
   # Qt for building sioyek (PDFs, workspace R; its cask was pulled, see sioyek/build.sh)
   brew "qtbase"

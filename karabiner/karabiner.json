@@ -45,12 +45,12 @@
             ]
           },
           {
-            "description": "Right Command: hold -> Hyper (Ctrl+Alt+Cmd, no Shift), tap -> nothing",
+            "description": "Left Control: hold -> Hyper (Ctrl+Alt+Cmd, no Shift). Caps Lock is Ctrl, so this key is free",
             "manipulators": [
               {
                 "type": "basic",
                 "from": {
-                  "key_code": "right_command",
+                  "key_code": "left_control",
                   "modifiers": {
                     "optional": [
                       "any"
@@ -64,11 +64,6 @@
                       "left_option",
                       "left_command"
                     ]
-                  }
-                ],
-                "to_if_alone": [
-                  {
-                    "key_code": "vk_none"
                   }
                 ]
               }
