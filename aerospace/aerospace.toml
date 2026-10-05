@@ -1,0 +1,173 @@
+# AeroSpace: tiling window manager. Linked to ~/.config/aerospace/aerospace.toml by install.sh.
+#
+# Same idea as the Neovim modes: one key enters WINDOW mode, then single keys act.
+# Everything sits on Ctrl+Alt so Alt stays free for Neovim (treewalker, resize).
+#
+#   ctrl-alt-1..9      go to workspace            (works anywhere)
+#   ctrl-alt-tab       previous workspace
+#   ctrl-alt-space     enter WINDOW mode (sketchybar shows a badge):
+#     h j k l          focus left/down/up/right
+#     H J K L          move window
+#     ctrl-h/j/k/l     join with the neighbour (nest into a split)
+#     1..9             go to workspace
+#     shift-1..9       send window to workspace (and follow it)
+#     - =              shrink / grow
+#     f                fullscreen
+#     t                float <-> tile
+#     /                tiles: flip horizontal/vertical
+#     ,                accordion (stacked) layout
+#     r                reset the layout tree
+#     x                close window
+#     c                reload this config
+#     esc / enter      back to normal
+#
+# Workspaces: 1 terminal · 2 browser · 3 notes · 9 music (apps land there on launch).
+# sketchybar and borders run as brew services, not from here.
+
+config-version = 2
+
+start-at-login = true
+
+enable-normalization-flatten-containers = true
+enable-normalization-opposite-orientation-for-nested-containers = true
+
+accordion-padding = 30
+default-root-container-layout = 'tiles'
+default-root-container-orientation = 'auto'
+
+on-focused-monitor-changed = ['move-mouse monitor-lazy-center']
+automatically-unhide-macos-hidden-apps = false
+
+# keep 1-9 around even when empty, so the bar always shows them
+persistent-workspaces = ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
+
+# sketchybar: highlight the focused workspace, show the WINDOW mode badge
+# (full path: commands run from AeroSpace don't have Homebrew on their PATH)
+exec-on-workspace-change = [
+  '/bin/bash', '-c',
+  '/opt/homebrew/bin/sketchybar --trigger aerospace_workspace_change FOCUSED_WORKSPACE=$AEROSPACE_FOCUSED_WORKSPACE',
+]
+on-mode-changed = ['exec-and-forget /opt/homebrew/bin/sketchybar --trigger aerospace_mode_change']
+
+[key-mapping]
+preset = 'qwerty'
+
+[gaps]
+inner.horizontal = 8
+inner.vertical = 8
+outer.left = 8
+outer.right = 8
+outer.bottom = 8
+outer.top = 44 # room for sketchybar (30px tall, 5px offset)
+
+# ---------------------------------------------------------------------------
+[mode.main.binding]
+ctrl-alt-space = 'mode window'
+ctrl-alt-tab = 'workspace-back-and-forth'
+ctrl-alt-1 = 'workspace 1'
+ctrl-alt-2 = 'workspace 2'
+ctrl-alt-3 = 'workspace 3'
+ctrl-alt-4 = 'workspace 4'
+ctrl-alt-5 = 'workspace 5'
+ctrl-alt-6 = 'workspace 6'
+ctrl-alt-7 = 'workspace 7'
+ctrl-alt-8 = 'workspace 8'
+ctrl-alt-9 = 'workspace 9'
+
+# ---------------------------------------------------------------------------
+[mode.window.binding]
+esc = 'mode main'
+enter = 'mode main'
+
+h = 'focus left'
+j = 'focus down'
+k = 'focus up'
+l = 'focus right'
+
+shift-h = 'move left'
+shift-j = 'move down'
+shift-k = 'move up'
+shift-l = 'move right'
+
+ctrl-h = 'join-with left'
+ctrl-j = 'join-with down'
+ctrl-k = 'join-with up'
+ctrl-l = 'join-with right'
+
+minus = 'resize smart -50'
+equal = 'resize smart +50'
+
+f = 'fullscreen'
+t = 'layout floating tiling'
+slash = 'layout tiles horizontal vertical'
+comma = 'layout accordion horizontal vertical'
+r = 'flatten-workspace-tree'
+x = 'close'
+c = ['reload-config', 'mode main']
+
+1 = 'workspace 1'
+2 = 'workspace 2'
+3 = 'workspace 3'
+4 = 'workspace 4'
+5 = 'workspace 5'
+6 = 'workspace 6'
+7 = 'workspace 7'
+8 = 'workspace 8'
+9 = 'workspace 9'
+
+shift-1 = 'move-node-to-workspace 1 --focus-follows-window'
+shift-2 = 'move-node-to-workspace 2 --focus-follows-window'
+shift-3 = 'move-node-to-workspace 3 --focus-follows-window'
+shift-4 = 'move-node-to-workspace 4 --focus-follows-window'
+shift-5 = 'move-node-to-workspace 5 --focus-follows-window'
+shift-6 = 'move-node-to-workspace 6 --focus-follows-window'
+shift-7 = 'move-node-to-workspace 7 --focus-follows-window'
+shift-8 = 'move-node-to-workspace 8 --focus-follows-window'
+shift-9 = 'move-node-to-workspace 9 --focus-follows-window'
+
+# ---------------------------------------------------------------------------
+# where apps land
+[[on-window-detected]]
+if.app-id = 'com.mitchellh.ghostty'
+run = 'move-node-to-workspace 1'
+
+[[on-window-detected]]
+if.app-id = 'net.kovidgoyal.kitty'
+run = 'move-node-to-workspace 1'
+
+[[on-window-detected]]
+if.app-id = 'com.google.Chrome'
+run = 'move-node-to-workspace 2'
+
+[[on-window-detected]]
+if.app-id = 'com.apple.Safari'
+run = 'move-node-to-workspace 2'
+
+[[on-window-detected]]
+if.app-id = 'md.obsidian'
+run = 'move-node-to-workspace 3'
+
+[[on-window-detected]]
+if.app-id = 'com.spotify.client'
+run = 'move-node-to-workspace 9'
+
+# small utility windows float instead of tiling
+[[on-window-detected]]
+if.app-id = 'com.apple.finder'
+run = 'layout floating'
+
+[[on-window-detected]]
+if.app-id = 'com.apple.systempreferences'
+run = 'layout floating'
+
+[[on-window-detected]]
+if.app-id = 'com.apple.calculator'
+run = 'layout floating'
+
+[[on-window-detected]]
+if.app-id = 'com.apple.QuickTimePlayerX'
+run = 'layout floating'
+
+[[on-window-detected]]
+if.app-id = 'com.apple.ActivityMonitor'
+run = 'layout floating'
