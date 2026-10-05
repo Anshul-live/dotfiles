@@ -81,9 +81,9 @@ ghostty_run() {
 	pgrep -xq ghostty || { open -b $GHOSTTY && sleep 1; }
 	osascript -e "tell application \"Ghostty\" to new window with configuration {command:\"/bin/zsh -lc \\\"$1; exec zsh -l\\\"\"}" >/dev/null
 }
-# qutebrowser (uv tool, no .app) opens new windows through its running instance (--target window)
+# a new qutebrowser window (qb: cold starts and IPC for the pip-installed qutebrowser)
 qute_window() {
-	nohup "$HOME/.local/bin/qutebrowser" --target window "${1:-about:blank}" >/dev/null 2>&1 &
+	"$HOME/.local/bin/qb" -w ${1:+"$1"}
 }
 excalidraw_window() { qute_window https://excalidraw.com; }
 # music plays from a detached tmux session; a window is only needed to look at it

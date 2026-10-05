@@ -34,7 +34,7 @@ image = [
 	{ run = "qlmanage -p %s1 >/dev/null 2>&1", desc = "Quick Look", orphan = true, for = "macos" },
 ]
 browser = [
-	{ run = "qutebrowser %s", desc = "qutebrowser", orphan = true, for = "unix" },
+	{ run = "qb %s", desc = "qutebrowser", orphan = true, for = "unix" },
 ]
 extract = [
 	# ouch picks the format from the extension and asks before overwriting

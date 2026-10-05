@@ -15,7 +15,7 @@ cleanup-on-quit yes
 confirm-mark-feed-read no
 
 # --- reading ---
-browser "qutebrowser %u"
+browser "qb %u"
 # hide feeds with nothing new; newest first
 show-read-feeds no
 show-read-articles yes
@@ -32,8 +32,8 @@ swap-title-and-hints yes
 scrolloff 5
 
 # ,v plays the link in mpv (videos, podcasts); ,y copies it
-macro v set browser "mpv --really-quiet %u >/dev/null 2>&1 &" ; open-in-browser ; set browser "qutebrowser %u"
-macro y set browser "printf %s %u | pbcopy" ; open-in-browser ; set browser "qutebrowser %u"
+macro v set browser "mpv --really-quiet %u >/dev/null 2>&1 &" ; open-in-browser ; set browser "qb %u"
+macro y set browser "printf %s %u | pbcopy" ; open-in-browser ; set browser "qb %u"
 
 # --- vim keys ---
 bind-key j down

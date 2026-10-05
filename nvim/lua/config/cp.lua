@@ -355,8 +355,8 @@ function M.submit()
   vim.fn.setreg("+", code)
   local url = (read(root .. "/problem.md") or ""):match("https?://%S+")
   if url then
-    if vim.fn.executable("qutebrowser") == 1 then
-      vim.system({ "qutebrowser", url }, { detach = true })
+    if vim.fn.executable("qb") == 1 then
+      vim.system({ "qb", url }, { detach = true })
     else
       vim.ui.open(url)
     end

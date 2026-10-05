@@ -96,6 +96,7 @@ link bin/ws-session       "$HOME/.local/bin/ws-session"
 link bin/cp-fetch         "$HOME/.local/bin/cp-fetch"
 link bin/cards            "$HOME/.local/bin/cards"
 link bin/block            "$HOME/.local/bin/block"
+link bin/qb               "$HOME/.local/bin/qb"
 
 # terminal apps
 link yazi                 "$HOME/.config/yazi"
