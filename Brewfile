@@ -27,7 +27,7 @@ brew "libqalculate"      # calculator: qalc
 brew "ouch"              # archives: ouch d file.zip (The Unarchiver)
 brew "mpv"               # every video, YouTube via yt-dlp (IINA, VLC, QuickTime)
 brew "yt-dlp"
-brew "spotify_player"    # music [M] (Spotify; needs Premium)
+brew "spotify_player"    # music [M] (Spotify; needs Premium; remote for the Spotify app)
 brew "aerc"              # mail [C] (Gmail over IMAP)
 tap "floatpane/matcha"
 cask "floatpane/matcha/matcha"  # mail TUI with threads, split pane (config: matcha/)
@@ -49,6 +49,7 @@ if OS.mac?
   brew "felixkratz/formulae/borders"     # outline on the focused window
   brew "pinentry-mac"                    # rbw's password prompt
   cask "karabiner-elements"              # Caps: tap Esc / hold Ctrl; Right Cmd: Hyper (karabiner/)
+  cask "spotify"                         # plays the audio; spotify_player is the remote
   cask "raycast"                         # clipboard history, snippets, calculator, app launch
   # Qt for building sioyek (PDFs, workspace R; its cask was pulled, see sioyek/build.sh)
   brew "qtbase"

@@ -4,7 +4,7 @@
 # the next run re-creates whatever is missing and re-attaches.
 #   ws-session notes      N  nvim on the vault
 #   ws-session comms      C  1 mail (aerc)  2 cal (ikhal)  3 rss (newsboat)
-#   ws-session music      M  spotify_player
+#   ws-session music      M  spotify_player, playing through the Spotify app (started hidden)
 #   ws-session <name> -d  only make sure it's running (music plays in the background)
 set -euo pipefail
 
@@ -14,7 +14,10 @@ VAULT="$HOME/Documents/Devlogs"
 case "${1:-}" in
 notes) dir=$VAULT windows=("notes:nvim") ;;
 comms) dir=$HOME windows=("mail:aerc" "cal:ikhal" "rss:newsboat") ;;
-music) dir=$HOME windows=("music:spotify_player") ;;
+# spotify_player is only the remote: Spotify refuses audio keys to its built-in librespot
+# player for newer accounts (librespot issue #1649), so the official app makes the sound.
+# -gj: launch it hidden in the background; give it a moment to show up as a Connect device.
+music) dir=$HOME windows=("music:pgrep -xq Spotify || { open -gja Spotify && sleep 4; }; exec spotify_player") ;;
 *)
 	echo "usage: $(basename "$0") notes|comms|music [-d]" >&2
 	exit 1
