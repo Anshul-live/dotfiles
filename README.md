@@ -205,6 +205,9 @@ More in `cards/README.md`.
 
 ## Terminal apps
 
+Every app also has a plain-word alias (`mail`, `cal`, `news`, `music`, `pdf`, `calc`, `solve <url>`,
+`pick`…). Type `tools` for the full list (`zsh/aliases.zsh`).
+
 | App | Start | Keys worth knowing |
 |---|---|---|
 | **aerc** mail | Hyper+C, window 1 | `j/k`, `Enter` read, `m` compose, `Rr` reply / `rr` reply all, `a` archive, `d` trash, `*` star, `gi gs gd ga gt` Inbox/Sent/Drafts/All/Starred, `gf` pick folder, `gl` open link, `?` help |
