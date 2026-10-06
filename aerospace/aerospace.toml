@@ -171,10 +171,11 @@ if.app-id = 'com.mitchellh.ghostty'
 run = ['layout tiling', 'move-node-to-workspace T']
 
 # qutebrowser is a pip install with no bundle id: match the title suffix its config pins
-# (qutebrowser/config.py window.title_format)
+# (qutebrowser/config.py window.title_format). layout tiling: like Ghostty, it has no title
+# bar (window.hide_decoration), so AeroSpace would float it at its startup size
 [[on-window-detected]]
 if.window-title-regex-substring = 'qutebrowser$'
-run = 'move-node-to-workspace B'
+run = ['layout tiling', 'move-node-to-workspace B']
 
 [[on-window-detected]]
 if.app-id = 'com.apple.Safari'
