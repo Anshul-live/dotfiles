@@ -22,7 +22,7 @@ then `aerospace reload-config`. Accounts are set up once, see [Accounts](#accoun
 | Key | Does |
 |---|---|
 | **Caps Lock** tap / hold | Esc / Ctrl |
-| **Left Ctrl** (hold) | **Hyper** = Ctrl+Alt+Cmd, used for everything below (Cmd keys stay normal) |
+| **Right Cmd** (hold) | **Hyper** = Ctrl+Alt+Cmd, used for everything below (Left Cmd and both Ctrls stay normal) |
 
 | **Right Option** + `h j k l` | arrow keys in GUI apps (WhatsApp, Messages, draw.io, dialogs…); not in Ghostty |
 

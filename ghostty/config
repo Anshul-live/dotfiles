@@ -58,7 +58,7 @@ macos-option-as-alt = true
 # so tmux and Neovim can resize panes with them; zsh maps them to word jumps itself
 keybind = alt+arrow_left=unbind
 keybind = alt+arrow_right=unbind
-# drop-down terminal from anywhere: Hyper+` (Hyper = held Left Ctrl, see karabiner/)
+# drop-down terminal from anywhere: Hyper+` (Hyper = held Right Cmd, see karabiner/)
 keybind = global:ctrl+alt+super+grave_accent=toggle_quick_terminal
 quick-terminal-position = top
 quick-terminal-animation-duration = 0

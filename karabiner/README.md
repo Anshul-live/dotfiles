@@ -7,13 +7,14 @@ JSON has no comments, so the rules are explained here. They apply to every keybo
 | Key           | Tap     | Hold / with another key                              |
 |---------------|---------|------------------------------------------------------|
 | Caps Lock     | Escape  | Left Control                                         |
-| Left Control  | (nothing) | Hyper = Ctrl+Alt+Cmd (no Shift, so Hyper+Shift stays free for "move window") |
+| Right Command | nothing | Hyper = Ctrl+Alt+Cmd (no Shift, so Hyper+Shift stays free for "move window") |
 | Right Option + h/j/k/l | - | arrow keys, in every app except Ghostty |
 
 - Escape only fires if Caps is released within 200 ms (`basic.to_if_alone_timeout_milliseconds`),
   so holding Caps and changing your mind doesn't send a stray Esc.
-- Left Control can be Hyper because Caps Lock already gives Ctrl (Karabiner remaps physical keys,
-  so Caps -> Ctrl is not turned into Hyper). Both Cmd keys stay normal Cmd.
+- Right Command no longer acts as Command; use the left one.
+- Left Control stays a plain Ctrl. (It was Hyper for a while, but then every Ctrl shortcut typed
+  with it, like Ctrl+h in Neovim or Ctrl+d, became a window-manager command.)
 
 ## Config lives in the repo
 

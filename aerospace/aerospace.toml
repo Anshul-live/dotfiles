@@ -1,8 +1,8 @@
 # AeroSpace: tiling window manager. Linked to ~/.config/aerospace/aerospace.toml by install.sh.
 #
-# Everything sits on Hyper = Ctrl+Alt+Cmd, which Karabiner puts on a held Left Ctrl
-# (karabiner/karabiner.json; Caps Lock is Ctrl, so that key is free): bottom-left corner,
-# same spot on the laptop and the Hive 65, and Cmd shortcuts stay untouched.
+# Everything sits on Hyper = Ctrl+Alt+Cmd, which Karabiner puts on a held Right Cmd
+# (karabiner/karabiner.json): one thumb + one key, same spot on the laptop and the Hive 65.
+# Both Ctrl keys stay plain Ctrl, so Ctrl shortcuts never turn into Hyper by accident.
 # Ctrl+Alt alone stays free for Neovim and tmux.
 #
 # Workspaces are letters for what lives there; apps land on theirs when they open.

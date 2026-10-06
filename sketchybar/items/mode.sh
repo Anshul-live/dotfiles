@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# AeroSpace mode badge: hidden normally, shows " WINDOW " while hyper-space mode is on (Hyper = held Left Ctrl)
+# AeroSpace mode badge: hidden normally, shows " WINDOW " while hyper-space mode is on (Hyper = held Right Cmd)
 # (like the mode badge in the Neovim statusline), with a cheat-sheet popup underneath.
 # AeroSpace fires the event on every mode change.
 # updates=on: the bar's default (when_shown) would never run the script while the badge is hidden.
