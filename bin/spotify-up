@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# spotify-up: make sure the Spotify app is running (hidden) and visible as a Spotify Connect
+# device, so spotify_player has something to play on. The app makes the sound; Spotify
+# refuses audio keys to spotify_player's own player (see spotify_player/app.toml).
+#
+#   spotify-up        start the app if needed, wait until it shows up as a device (max ~20s)
+#   spotify-up -n     start it if needed, don't wait (e.g. spotify_player is already open:
+#                     its next play connects to the device by itself)
+set -euo pipefail
+PATH="/opt/homebrew/bin:/usr/local/bin:$PATH" # launchd/AeroSpace shells lack Homebrew
+
+if ! pgrep -xq Spotify; then
+  # -g: don't bring it forward, -j: launch hidden (no window lands on a workspace)
+  open -gja Spotify
+fi
+[[ ${1:-} == -n ]] && exit 0
+
+# the app needs a few seconds after launch to register with Spotify Connect
+for _ in $(seq 20); do
+  [[ "$(spotify_player get key devices 2>/dev/null)" == *'"id"'* ]] && exit 0
+  sleep 1
+done
+echo "spotify-up: the Spotify app is running but not showing up as a device (logged in?)" >&2

@@ -14,3 +14,22 @@ key_sequence = "C-d"
 [[keymaps]]
 command = "PageSelectPreviousOrScrollUp"
 key_sequence = "C-u"
+
+# Ctrl+h/j/k/l move between panes like nvim splits (Tab / Shift-Tab still work). The player only
+# has next/previous pane, so l/j go forward and h/k back. tmux passes these through because the
+# music session has a single pane (tmux.conf only switches panes when one is on that side).
+[[keymaps]]
+command = "FocusNextWindow"
+key_sequence = "C-l"
+
+[[keymaps]]
+command = "FocusNextWindow"
+key_sequence = "C-j"
+
+[[keymaps]]
+command = "FocusPreviousWindow"
+key_sequence = "C-h"
+
+[[keymaps]]
+command = "FocusPreviousWindow"
+key_sequence = "C-k"

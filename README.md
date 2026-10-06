@@ -214,7 +214,7 @@ Every app also has a plain-word alias (`mail`, `cal`, `news`, `music`, `pdf`, `c
 | **matcha** mail | `matcha` | `j/k`, `Enter` open, `r`/`R` reply/reply all, `f` forward, `a` archive, `d` delete, `v` select, `T` threads, `/` search, `h/l` tabs, `:` commands. Same Gmail account as aerc |
 | **ikhal** calendar | Hyper+C, window 2 | `n` new event, `Enter` view, `?` help. Also `khal list today 7d` |
 | **newsboat** RSS | Hyper+C, window 3 | `j/k`, `l` open, `h` back, `o` open in browser, `v` play in mpv, `y` copy link, `n` next unread, `R` reload. Feeds: `newsboat/urls` |
-| **spotify_player** | Hyper+M | `j/k` `gg/G` `Ctrl-d/u` move, `h` back, `Enter` open, `Space` play/pause, `n`/`p` next/prev, `g s` search Spotify, `/` filter, `D` device, `?` help. It is the remote; the Spotify app (started hidden) plays the sound, since Spotify blocks the built-in player for newer accounts |
+| **spotify_player** | Hyper+M / `music` | `j/k` `gg/G` `Ctrl-d/u` move, `Ctrl-h/j/k/l` switch pane, `h` back, `Enter` open, `Space` play/pause, `n`/`p` next/prev, `g s` search Spotify, `/` filter, `D` device, `?` help. It is the remote; the Spotify app (started hidden) plays the sound, since Spotify blocks the built-in player for newer accounts |
 | **yazi** files | `y` | `hjkl`, `Enter` open (nvim/sioyek/mpv/qutebrowser by type), `Space` select, `y`/`x`/`p` copy/cut/paste, `d` trash, `a` new, `r` rename, `.` hidden, `q` quit |
 | **sioyek** PDFs | `open file.pdf` / from yazi | `j/k`, `Ctrl-d/u` screen, `J/K` page, `w` fit width, `i` colours, `/` search, `t` contents, `m`/`` ` `` marks |
 | **mpv** video | `mpv <file or url>` | `Space` pause, `h/l` ±5s, `H/L` ±60s, `j/k` volume, `c` subtitles, `[ ]` speed, `f` fullscreen, `a` A-B loop, `q` quit (resumes where you stopped) |
