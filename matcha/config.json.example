@@ -1,0 +1,19 @@
+{
+  "accounts": [
+    {
+      "id": "gmail",
+      "name": "Anshul Kumar",
+      "email": "itsanshulkumar03@gmail.com",
+      "service_provider": "gmail",
+      "fetch_email": "itsanshulkumar03@gmail.com",
+      "pass_cmd": "/opt/homebrew/bin/rbw get 'Gmail app password'"
+    }
+  ],
+  "theme": "Vague",
+  "enable_split_pane": true,
+  "enable_threaded": true,
+  "hide_tips": true,
+  "has_seen_setup_guide": true,
+  "show_cc_bcc_by_default": false,
+  "undo_delay_seconds": 10
+}

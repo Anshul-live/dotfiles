@@ -49,6 +49,8 @@ install_packages() {
   [[ $OS == Darwin ]] && uv tool install -q qutebrowser --with PyQt6 --with PyQt6-WebEngine --with adblock
   uv tool install -q stig --with 'urwid>=2.6.12,<3'
   uv tool install -q apyanki
+  # LeetCode from the terminal (pick, test, submit); Go puts it in ~/go/bin
+  go install github.com/j178/leetgo@latest
 
   # sioyek's cask is gone too (not notarized): build it into ~/Applications
   [[ $OS == Darwin ]] && "$D/sioyek/build.sh"
@@ -108,6 +110,11 @@ link newsboat/config      "$HOME/.config/newsboat/config"
 link newsboat/urls        "$HOME/.config/newsboat/urls"
 mkdir -p "$HOME/.local/share/newsboat" # its cache dir in XDG mode
 link stig                 "$HOME/.config/stig"
+link leetgo/leetgo.json   "$HOME/.leetgo/leetgo.json"
+link matcha/keybinds.json "$HOME/.config/matcha/keybinds.json"
+link matcha/themes        "$HOME/.config/matcha/themes"
+# matcha rewrites config.json from its Settings screen: copy it once, like aerc's accounts
+[[ -e "$HOME/.config/matcha/config.json" ]] || { cp "$D/matcha/config.json.example" "$HOME/.config/matcha/config.json" && echo "copied ~/.config/matcha/config.json"; }
 link mpv/mpv.conf         "$HOME/.config/mpv/mpv.conf"
 link mpv/input.conf       "$HOME/.config/mpv/input.conf"
 # aerc reads ~/Library/Preferences/aerc on macOS (no XDG_CONFIG_HOME here)

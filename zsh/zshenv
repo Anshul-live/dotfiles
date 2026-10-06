@@ -16,6 +16,7 @@ path=(
   $HOME/.local/bin
   $HOME/bin
   $HOME/.cargo/bin
+  $HOME/go/bin           # go install (leetgo)
   $HOME/.opencode/bin
   $path
 )

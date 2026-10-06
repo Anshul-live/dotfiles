@@ -147,6 +147,9 @@ From scripts use `qb <url>` (handles starting qutebrowser; `qb -w` = new window)
 Codeforces blocks scripts: fetch it with `,c` from qutebrowser (uses the page you see).
 `<bits/stdc++.h>` works (a stand-in lives in `~/Desktop/code/dsa/include`).
 
+LeetCode without the browser: `leetgo pick <id|slug>` makes the files and opens nvim (C++),
+`leetgo test <id>` runs them on LeetCode, `leetgo submit <id>` submits. Config: `leetgo/leetgo.json`.
+
 ## Notes and flashcards
 
 Notes are markdown in the Obsidian vault `~/Documents/Devlogs`, written in nvim (Hyper+N).
@@ -184,6 +187,7 @@ More in `cards/README.md`.
 | App | Start | Keys worth knowing |
 |---|---|---|
 | **aerc** mail | Hyper+C, window 1 | `j/k`, `Enter` read, `m` compose, `Rr` reply / `rr` reply all, `a` archive, `d` trash, `*` star, `gi gs gd ga gt` Inbox/Sent/Drafts/All/Starred, `gf` pick folder, `gl` open link, `?` help |
+| **matcha** mail | `matcha` | `j/k`, `Enter` open, `r`/`R` reply/reply all, `f` forward, `a` archive, `d` delete, `v` select, `T` threads, `/` search, `h/l` tabs, `:` commands. Same Gmail account as aerc |
 | **ikhal** calendar | Hyper+C, window 2 | `n` new event, `Enter` view, `?` help. Also `khal list today 7d` |
 | **newsboat** RSS | Hyper+C, window 3 | `j/k`, `l` open, `h` back, `o` open in browser, `v` play in mpv, `y` copy link, `n` next unread, `R` reload. Feeds: `newsboat/urls` |
 | **spotify_player** | Hyper+M | `j/k` `gg/G` `Ctrl-d/u` move, `h` back, `Enter` open, `Space` play/pause, `n`/`p` next/prev, `g s` search Spotify, `/` filter, `?` help |
@@ -235,8 +239,9 @@ Calendar syncs every 15 min (`~/Library/LaunchAgents/com.anshul.vdirsyncer.plist
 | `aerospace/`, `sketchybar/`, `borders/`, `karabiner/` | windows, bar, focus outline, keyboard |
 | `ghostty/`, `tmux/`, `zsh/`, `starship/`, `nvim/` | terminal, multiplexer, shell, prompt, editor |
 | `qutebrowser/`, `mpv/`, `sioyek/` | browser, video, PDFs |
-| `aerc/`, `khal/`, `vdirsyncer/`, `newsboat/`, `spotify_player/`, `yazi/`, `btop/`, `stig/` | terminal apps |
+| `aerc/`, `matcha/`, `khal/`, `vdirsyncer/`, `newsboat/`, `spotify_player/`, `yazi/`, `btop/`, `stig/` | terminal apps |
 | `blocker/` | distraction blocker |
 | `cards/` | flashcards from notes |
+| `leetgo/` | LeetCode CLI settings |
 | `bin/` | `tmux-sessionizer`, `ws-session`, `cp-fetch`, `qb`, `cards`, `block` |
 | `macos/defaults.sh` | system settings (key repeat, no animations, Dock, Finder…) |

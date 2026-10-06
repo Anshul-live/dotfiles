@@ -29,6 +29,8 @@ brew "mpv"               # every video, YouTube via yt-dlp (IINA, VLC, QuickTime
 brew "yt-dlp"
 brew "spotify_player"    # music [M] (Spotify; needs Premium)
 brew "aerc"              # mail [C] (Gmail over IMAP)
+tap "floatpane/matcha"
+cask "floatpane/matcha/matcha"  # mail TUI with threads, split pane (config: matcha/)
 brew "w3m"               # aerc's HTML mail filter
 brew "khal"              # calendar [C]
 brew "vdirsyncer"        # syncs Google Calendar for khal

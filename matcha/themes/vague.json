@@ -1,0 +1,16 @@
+{
+  "name": "Vague",
+  "accent": "#6e94b2",
+  "accent_dark": "#333738",
+  "accent_text": "#141415",
+  "secondary": "#606079",
+  "subtle_text": "#606079",
+  "muted_text": "#606079",
+  "dim_text": "#cdcdcd",
+  "danger": "#d8647e",
+  "warning": "#e0a363",
+  "tip": "#f3be7c",
+  "link": "#aeaed1",
+  "directory": "#6e94b2",
+  "contrast": "#141415"
+}
