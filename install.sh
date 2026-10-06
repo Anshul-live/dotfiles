@@ -96,6 +96,8 @@ link zsh/inputrc            "$HOME/.inputrc"
 link bin/tmux-sessionizer "$HOME/.local/bin/tmux-sessionizer"
 link bin/ws-session       "$HOME/.local/bin/ws-session"
 link bin/cp-fetch         "$HOME/.local/bin/cp-fetch"
+link bin/cp-index         "$HOME/.local/bin/cp-index"
+link bin/lc               "$HOME/.local/bin/lc"
 link bin/cards            "$HOME/.local/bin/cards"
 link bin/block            "$HOME/.local/bin/block"
 link bin/qb               "$HOME/.local/bin/qb"
@@ -110,7 +112,16 @@ link newsboat/config      "$HOME/.config/newsboat/config"
 link newsboat/urls        "$HOME/.config/newsboat/urls"
 mkdir -p "$HOME/.local/share/newsboat" # its cache dir in XDG mode
 link stig                 "$HOME/.config/stig"
-link leetgo/leetgo.json   "$HOME/.leetgo/leetgo.json"
+# solutions repo (cp-fetch / lc / nvim CP mode write here; leetgo.yaml lives in it)
+CP_ROOT="$HOME/Desktop/code/dsa"
+if [[ ! -d "$CP_ROOT/.git" ]]; then
+  git clone -q git@github.com:Anshul-live/dsa.git "$CP_ROOT" && echo "cloned $CP_ROOT" || echo "skip   $CP_ROOT (clone failed: ssh key?)"
+fi
+# plans and sketches show up in Obsidian (Excalidraw plugin) as DSA/Solutions
+VAULT="$HOME/Documents/Devlogs"
+if [[ -d "$VAULT" && ! -e "$VAULT/DSA/Solutions" ]]; then
+  mkdir -p "$VAULT/DSA" && ln -s "$CP_ROOT" "$VAULT/DSA/Solutions" && echo "linked $VAULT/DSA/Solutions"
+fi
 link matcha/keybinds.json "$HOME/.config/matcha/keybinds.json"
 link matcha/themes        "$HOME/.config/matcha/themes"
 # matcha rewrites config.json from its Settings screen: copy it once, like aerc's accounts

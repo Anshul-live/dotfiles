@@ -28,6 +28,7 @@ return {
   docker = c.hint,
   http = c.constant,
   focus = c.type,
+  cp = c.number,
 
   warn = c.warning,
   error = c.error,

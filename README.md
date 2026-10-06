@@ -131,24 +131,45 @@ From scripts use `qb <url>` (handles starting qutebrowser; `qb -w` = new window)
 
 ## Competitive programming (C++)
 
-1. On a problem page (Codeforces, CSES, AtCoder, LeetCode) press `,c` in qutebrowser, or run
-   `cp-fetch <url>`. It creates `~/Desktop/code/dsa/<judge>/<set>/<id>-<slug>/` with
-   `main.cpp`, `tests/N.in|out`, `problem.md` and opens it in the tmux session `dsa` (Hyper+T).
-2. In nvim:
+Every problem lives in one repo, `~/Desktop/code/dsa`
+([github.com/Anshul-live/dsa](https://github.com/Anshul-live/dsa), public), with its plan next to
+the code:
+
+```
+leetcode/0001.two-sum/                 solution.cpp  testcases.txt  question.md   (leetgo)
+codeforces/1900/1900A-…/               main.cpp      tests/N.in|out problem.md    (cp-fetch)
+  + plan.md               frontmatter (status, difficulty, tags) + plan, from your DSA template
+  + sketch.excalidraw.md  drawing; the repo is DSA/Solutions in the Obsidian vault
+README.md                 table of everything, rebuilt by cp-index
+```
+
+**Get a problem:** `,c` on any problem page in qutebrowser (Codeforces, CSES, AtCoder, LeetCode),
+`cp-fetch <url>`, or from nvim (below). It opens nvim as statement | plan | code, in CP mode.
+
+**Plan first:** the cursor starts in `plan.md` (approach, complexity, edge cases) when it's
+empty, and test/submit warn until it's filled. `d` opens the sketch in Obsidian (Excalidraw);
+it auto-exports `sketch.excalidraw.svg`, which `plan.md` shows on GitHub.
+
+**CP mode** (`<leader>j`, on by itself when a problem opens; `Esc`/`q` leaves it):
 
 | Key | Does |
 |---|---|
-| `<leader>jj` | compile (sanitizers on) and run every test: AC / WA / TLE / RE |
-| `<leader>jl` | show the last results again |
-| `<leader>ja` | add a test case |
-| `<leader>jp` | problem statement |
-| `<leader>js` | copy the solution and open the problem to submit |
+| `p` / `f` / `b` | pick any LeetCode problem / fetch a URL / browse your solutions (plan preview) |
+| `1` `2` `3` | statement / plan / code |
+| `t` | run tests locally (LeetCode: `testcases.txt` via leetgo; others: sanitizers, AC/WA/TLE/RE) |
+| `T` | LeetCode: run on LeetCode's servers |
+| `s` | LeetCode: submit; Accepted marks it solved, commits and pushes. Others: copy + open the page |
+| `S` | mark solved + commit + push (after a Codeforces/CSES/AtCoder accept) |
+| `n` / `r` | new test case / last results |
+| `d` / `w` | draw the sketch / open the problem in qutebrowser |
+
+LeetCode from the shell: `lc pick 1`, `lc test 1 -L`, `lc submit 1` (`lc` is leetgo run from the
+repo with your cookies). Testing on LeetCode and submitting need two rbw entries, `LeetCode
+session` and `LeetCode csrftoken`: log in at leetcode.com in qutebrowser, `wi` → Application →
+Cookies, copy `LEETCODE_SESSION` and `csrftoken` (redo when LeetCode logs you out).
 
 Codeforces blocks scripts: fetch it with `,c` from qutebrowser (uses the page you see).
 `<bits/stdc++.h>` works (a stand-in lives in `~/Desktop/code/dsa/include`).
-
-LeetCode without the browser: `leetgo pick <id|slug>` makes the files and opens nvim (C++),
-`leetgo test <id>` runs them on LeetCode, `leetgo submit <id>` submits. Config: `leetgo/leetgo.json`.
 
 ## Notes and flashcards
 
@@ -242,6 +263,5 @@ Calendar syncs every 15 min (`~/Library/LaunchAgents/com.anshul.vdirsyncer.plist
 | `aerc/`, `matcha/`, `khal/`, `vdirsyncer/`, `newsboat/`, `spotify_player/`, `yazi/`, `btop/`, `stig/` | terminal apps |
 | `blocker/` | distraction blocker |
 | `cards/` | flashcards from notes |
-| `leetgo/` | LeetCode CLI settings |
-| `bin/` | `tmux-sessionizer`, `ws-session`, `cp-fetch`, `qb`, `cards`, `block` |
+| `bin/` | `tmux-sessionizer`, `ws-session`, `cp-fetch`, `cp-index`, `lc`, `qb`, `cards`, `block` |
 | `macos/defaults.sh` | system settings (key repeat, no animations, Dock, Finder…) |

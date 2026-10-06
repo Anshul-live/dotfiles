@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+# lc: leetgo from anywhere, signed in with the LeetCode cookies kept in rbw.
+#
+#   lc pick 932          make leetcode/0932.beautiful-array/ (use cp-fetch to also get plan.md)
+#   lc test 932 -L       run testcases.txt locally   (-R: on LeetCode, needs cookies)
+#   lc submit 932        submit                      (needs cookies)
+#   lc info 932          difficulty, tags, hints
+#
+# Picking works signed out; testing on LeetCode and submitting need two cookies.
+# Log in at leetcode.com in qutebrowser, open devtools (wi) > Application >
+# Cookies > leetcode.com and store them in rbw (refresh them when LeetCode logs you out):
+#   rbw add 'LeetCode session'     # value of LEETCODE_SESSION
+#   rbw add 'LeetCode csrftoken'   # value of csrftoken
+# CP_ROOT overrides the solutions folder (default ~/Desktop/code/dsa).
+set -euo pipefail
+
+ROOT="${CP_ROOT:-$HOME/Desktop/code/dsa}"
+if [[ -z "${LEETCODE_SESSION:-}" ]] && command -v rbw >/dev/null; then
+  LEETCODE_SESSION="$(rbw get 'LeetCode session' 2>/dev/null || true)"
+  LEETCODE_CSRFTOKEN="$(rbw get 'LeetCode csrftoken' 2>/dev/null || true)"
+  export LEETCODE_SESSION LEETCODE_CSRFTOKEN
+fi
+# leetgo reads leetgo.yaml from the current directory
+cd "$ROOT"
+exec leetgo "$@"

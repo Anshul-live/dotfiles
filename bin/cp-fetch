@@ -10,8 +10,15 @@
 #   main.cpp       template (never overwritten on a re-fetch)
 #   tests/N.in/.out  samples (re-fetch refreshes these, extra tests you added stay)
 #   problem.md     title, URL, limits, statement as text
-# LeetCode is function-based: solution.cpp gets LeetCode's C++ stub and the
-# examples go into problem.md (no stdin tests).
+# LeetCode goes through leetgo (`lc pick`, see bin/lc) into
+# ~/Desktop/code/dsa/leetcode/<0932.slug>/: solution.cpp with a local test
+# harness, question.md, testcases.txt.
+#
+# Every problem also gets (never overwritten):
+#   plan.md                 frontmatter (judge, id, status, tags…) + the plan to
+#                           fill in before coding; bin/cp-index reads it
+#   sketch.excalidraw.md    blank Excalidraw drawing; the folder shows up in the
+#                           Obsidian vault as DSA/Solutions (a symlink)
 #
 # Codeforces serves a Cloudflare challenge to scripts. When run from a
 # qutebrowser userscript, $QUTE_HTML (the page you're looking at) is parsed
@@ -30,6 +37,7 @@ import subprocess
 import sys
 import urllib.error
 import urllib.request
+from datetime import date
 
 ROOT = os.path.expanduser(os.environ.get("CP_ROOT", "~/Desktop/code/dsa"))
 SESSION = "dsa"
@@ -37,8 +45,71 @@ UA = (
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
     "(KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
 )
-# userscripts inherit qutebrowser's minimal PATH; tmux/w3m/aerospace live here
-os.environ["PATH"] = os.environ.get("PATH", "/usr/bin:/bin") + ":/opt/homebrew/bin:/usr/local/bin"
+# userscripts inherit qutebrowser's minimal PATH; tmux/w3m/aerospace live here,
+# lc in ~/.local/bin and leetgo in ~/go/bin
+os.environ["PATH"] = os.environ.get("PATH", "/usr/bin:/bin") + ":/opt/homebrew/bin:/usr/local/bin:" + \
+    os.path.expanduser("~/.local/bin") + ":" + os.path.expanduser("~/go/bin")
+
+PLAN = """\
+---
+judge: {judge}
+id: "{id}"
+title: "{title}"
+url: {url}
+difficulty: {difficulty}
+tags: [{tags}]
+status: todo
+started: {today}
+solved:
+---
+# {heading}
+
+[Problem]({url})
+
+## Understanding
+-
+
+## Approach (Before Coding)
+-
+
+## Complexity
+- Time: ``
+- Space: ``
+
+## Edge Cases
+-
+
+## Mistake / Struggle
+-
+
+## Reuse Trigger
+-
+
+## Sketch
+![sketch](sketch.excalidraw.svg)
+"""
+
+# the Obsidian Excalidraw plugin's file format: frontmatter flag + JSON scene
+SKETCH = """\
+---
+
+excalidraw-plugin: parsed
+tags: [excalidraw]
+
+---
+==⚠  Switch to EXCALIDRAW VIEW in the MORE OPTIONS menu of this document. ⚠==
+
+
+# Excalidraw Data
+
+## Text Elements
+%%
+## Drawing
+```json
+{"type":"excalidraw","version":2,"source":"https://github.com/zsviczian/obsidian-excalidraw-plugin","elements":[],"appState":{"gridSize":null,"viewBackgroundColor":"#ffffff"},"files":{}}
+```
+%%
+"""
 
 TEMPLATE = """\
 #include <bits/stdc++.h>
@@ -296,31 +367,48 @@ def atcoder(url, m, html_file):
     }
 
 
+def lc(*args):
+    if not shutil.which("lc") or not shutil.which("leetgo"):
+        raise Fail("lc/leetgo not found (install.sh installs leetgo, links bin/lc)")
+    # stdin closed: leetgo's "overwrite?" prompt then answers no instead of hanging
+    r = subprocess.run(["lc", *args], capture_output=True, text=True, stdin=subprocess.DEVNULL,
+                       env=dict(os.environ, NO_COLOR="1"))
+    return r.returncode, r.stdout + r.stderr
+
+
 def leetcode(url, m, _html_file):
+    # leetgo writes the files (stub + local test harness + testcases); this only
+    # reads back where they went and the metadata plan.md needs
     slug = m.group(1)
-    query = """query q($titleSlug: String!) { question(titleSlug: $titleSlug) {
-      questionFrontendId title difficulty content exampleTestcases
-      codeSnippets { langSlug code } } }"""
-    body = json.dumps({"query": query, "variables": {"titleSlug": slug}}).encode()
-    data = json.loads(get("https://leetcode.com/graphql", data=body, headers={
-        "Content-Type": "application/json", "Referer": url}))
-    q = (data.get("data") or {}).get("question")
-    if not q:
-        raise Fail("LeetCode has no problem '%s'" % slug)
-    if not q.get("content"):
-        raise Fail("LeetCode returned no statement (premium problem?)")
-    snippet = next((s["code"] for s in q.get("codeSnippets") or [] if s["langSlug"] == "cpp"), "")
+    lcdir = os.path.join(ROOT, "leetcode")
+    have = [e for e in sorted(os.listdir(lcdir)) if e.endswith("." + slug)] if os.path.isdir(lcdir) else []
+    if have:  # already picked: keep the code, just reopen (and add a missing plan)
+        d = os.path.join(lcdir, have[0])
+    else:
+        code, out = lc("pick", slug)
+        gen = re.search(r"generated file=(\S+)/solution\.\w+", out)
+        if code != 0 or not gen:
+            raise Fail("leetgo pick failed: " + (out.strip().splitlines() or ["?"])[-1])
+        d = os.path.join(ROOT, gen.group(1))
+    info = {}
+    _, out = lc("info", slug)
+    for line in out.splitlines():
+        k, _, v = line.strip().partition("  ")
+        if k in ("Difficulty", "Tags", "URL"):
+            info[k] = v.strip()
+    title = re.search(r"^#\s*\[(.+?)\]", open(os.path.join(d, "question.md"), encoding="utf-8").read(), re.M)
+    pid = os.path.basename(d).split(".")[0].lstrip("0") or "0"
     return {
         "judge": "leetcode",
-        "set": q["difficulty"].lower(),
-        "id": q["questionFrontendId"],
-        "title": q["questionFrontendId"] + ". " + q["title"],
+        "dir": d,
+        "src": "solution.cpp",
+        "id": pid,
+        "title": title.group(1) if title else pid + ". " + slug,
         "slug": slug,
-        "limits": q["difficulty"],
-        "statement": to_text(q["content"]),
+        "url": info.get("URL") or "https://leetcode.com/problems/%s/" % slug,
+        "difficulty": info.get("Difficulty", ""),
+        "tags": [t.strip() for t in info.get("Tags", "").split(",") if t.strip()],
         "samples": [],
-        "snippet": snippet,
-        "examples": q.get("exampleTestcases") or "",
     }
 
 
@@ -343,8 +431,26 @@ def ensure_stdcxx():
             f.write(STDCXX)
 
 
+def write_plan(d, p, url):
+    plan, sketch = os.path.join(d, "plan.md"), os.path.join(d, "sketch.excalidraw.md")
+    if not os.path.exists(plan):
+        heading = p["title"] or p["id"]
+        title = re.sub(r"^[A-Za-z0-9]+\.\s*", "", heading) or heading
+        with open(plan, "w") as f:
+            f.write(PLAN.format(
+                judge=p["judge"], id=p["id"], title=title.replace('"', "'"), heading=heading,
+                url=p.get("url") or url, difficulty=p.get("difficulty", ""),
+                tags=", ".join(p.get("tags") or []), today=date.today().isoformat()))
+    if not os.path.exists(sketch):
+        with open(sketch, "w") as f:
+            f.write(SKETCH)
+
+
 def write(p, url):
     ensure_stdcxx()
+    if p.get("dir"):  # leetgo already wrote the problem files
+        write_plan(p["dir"], p, url)
+        return p["dir"], p["src"]
     judge = p["judge"]
     name = p["id"]
     title_slug = p.get("slug") or slugify(re.sub(r"^[A-Za-z0-9]+\.\s*", "", p["title"]))
@@ -360,25 +466,17 @@ def write(p, url):
                 break
     os.makedirs(d, exist_ok=True)
 
-    lc = judge == "leetcode"
-    src = os.path.join(d, "solution.cpp" if lc else "main.cpp")
+    src = os.path.join(d, "main.cpp")
     if not os.path.exists(src):
         with open(src, "w") as f:
-            if lc:
-                f.write("#include <bits/stdc++.h>\nusing namespace std;\n\n")
-                f.write((p["snippet"] or "class Solution {\npublic:\n};").rstrip() + "\n")
-                # LeetCode never defines LOCAL, so this main is ignored on submit
-                f.write("\n#ifdef LOCAL\nint main() {\n  Solution s;\n}\n#endif\n")
-            else:
-                f.write(TEMPLATE)
+            f.write(TEMPLATE)
 
-    if not lc:
-        tdir = os.path.join(d, "tests")
-        os.makedirs(tdir, exist_ok=True)
-        for i, (a, b) in enumerate(p["samples"], 1):
-            for ext, text in (("in", a), ("out", b)):
-                with open(os.path.join(tdir, "%d.%s" % (i, ext)), "w") as f:
-                    f.write(text)
+    tdir = os.path.join(d, "tests")
+    os.makedirs(tdir, exist_ok=True)
+    for i, (a, b) in enumerate(p["samples"], 1):
+        for ext, text in (("in", a), ("out", b)):
+            with open(os.path.join(tdir, "%d.%s" % (i, ext)), "w") as f:
+                f.write(text)
 
     lines = ["# " + (p["title"] or p["id"]), "", url]
     if p.get("limits"):
@@ -386,10 +484,9 @@ def write(p, url):
     lines.append("")
     if p.get("statement"):
         lines += [p["statement"].rstrip(), ""]
-    if lc and p.get("examples"):
-        lines += ["## Example inputs", "", "```", p["examples"].rstrip(), "```", ""]
     with open(os.path.join(d, "problem.md"), "w") as f:
         f.write("\n".join(lines))
+    write_plan(d, p, url)
     return d, os.path.basename(src)
 
 
@@ -407,7 +504,8 @@ def open_in_tmux(d, src, win):
     if not shutil.which("tmux"):
         raise Fail("tmux not found")
     # cd inside the command so the session itself (and new windows) start in the dsa root
-    cmd = "cd %s && exec nvim %s" % (shlex.quote(d), src)
+    # :CpOpen lays out statement | plan | code and enters CP mode (nvim/lua/config/cp.lua)
+    cmd = "cd %s && exec nvim +CpOpen %s" % (shlex.quote(d), src)
     if subprocess.run(["tmux", "has-session", "-t", "=" + SESSION], capture_output=True).returncode != 0:
         os.makedirs(ROOT, exist_ok=True)
         tmux("new-session", "-d", "-s", SESSION, "-c", ROOT, "-n", win, cmd)
@@ -462,7 +560,7 @@ def main(argv):
         open_in_tmux(d, src, win)
 
     n = len(p["samples"])
-    what = "stub + examples in problem.md" if p["judge"] == "leetcode" else "%d sample%s" % (n, "" if n == 1 else "s")
+    what = "leetgo stub + testcases" if p["judge"] == "leetcode" else "%d sample%s" % (n, "" if n == 1 else "s")
     short = d.replace(os.path.expanduser("~"), "~", 1)
     msg = "cp-fetch: %s %s — %s → %s" % (p["judge"], p["id"], what, short)
     if p.get("warn"):

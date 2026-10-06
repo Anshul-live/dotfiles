@@ -1,14 +1,21 @@
--- Competitive programming: run a problem's sample tests (folders made by
--- bin/cp-fetch: main.cpp + tests/N.in / N.out). Async; the editor never waits.
+-- Competitive programming. Problems live in ~/Desktop/code/dsa (a git repo):
+--   <judge>/<set>/<id>-<slug>/   main.cpp + tests/N.in|out + problem.md   (bin/cp-fetch)
+--   leetcode/<0932.slug>/        solution.cpp + testcases.txt + question.md (leetgo via bin/lc)
+-- and each has plan.md (frontmatter + the plan) and sketch.excalidraw.md (Obsidian).
 --
---   <leader>jj  compile once, run every test, show ✓/✗/TLE/RE in a float
---   <leader>jl  reopen the last results
---   <leader>ja  add a test case (tests/N.in + N.out in a split)
---   <leader>js  submit: copy the solution, open the problem page
---   <leader>jp  read problem.md
+-- :CpOpen lays a problem out as  statement | code  with plan.md under the
+-- statement, and enters CP mode (<leader>j, keys in plugins/cp.lua). Running
+-- Codeforces/CSES/AtCoder samples is done here (async, results in a float);
+-- LeetCode test/submit runs `lc` into a bottom output split. An Accepted submit
+-- marks plan.md solved and commits + pushes the folder (bin/cp-index).
 --
 -- <leader>r (config/run.lua) is untouched: it still runs the file interactively.
 local M = {}
+
+local ROOT = vim.fn.expand(vim.env.CP_ROOT or "~/Desktop/code/dsa")
+local VAULT, VAULT_DIR = "Devlogs", vim.fn.expand("~/Documents/Devlogs")
+local VAULT_LINK = "DSA/Solutions" -- symlink to ROOT inside the vault (install.sh)
+local LC_CACHE = vim.fn.expand("~/.config/leetgo/cache/leetcode-questions.json")
 
 local TIMEOUT = 2000 -- ms per test; well above typical 1-2s limits on -O2
 local SHOW = 20 -- lines of input / expected / got shown per failed test
@@ -278,7 +285,7 @@ function M.test(opts)
   src = src or (root and root .. "/main.cpp")
   if not root then return vim.notify("cp: no tests/ folder here", vim.log.levels.WARN) end
   local list = tests(root)
-  if #list == 0 then return vim.notify("cp: tests/ has no .in files (<leader>ja adds one)", vim.log.levels.WARN) end
+  if #list == 0 then return vim.notify("cp: tests/ has no .in files (n in CP mode adds one)", vim.log.levels.WARN) end
   vim.cmd("silent! wall")
   busy = true
   local bin = root .. "/build/" .. vim.fn.fnamemodify(src, ":t:r")
@@ -364,12 +371,369 @@ function M.submit()
   vim.notify(("cp: copied %s%s"):format(vim.fn.fnamemodify(src, ":t"), url and ", opened the problem" or ""))
 end
 
-function M.problem()
-  local root = problem() or vim.fn.expand("%:p:h")
-  local md = root .. "/problem.md"
-  if vim.fn.filereadable(md) == 0 then return vim.notify("cp: no problem.md", vim.log.levels.WARN) end
-  vim.cmd("tabedit " .. vim.fn.fnameescape(md))
-  vim.wo.wrap, vim.wo.linebreak = true, true
+-- ── problem folders ──────────────────────────────────────────────────────────
+
+local function exists(p) return vim.uv.fs_stat(p) ~= nil end
+
+---Problem folder holding `path` (plan.md, testcases.txt or tests/ marks one).
+local function folder(path)
+  path = path or vim.api.nvim_buf_get_name(0)
+  local dir = path ~= "" and (vim.fn.isdirectory(path) == 1 and path or vim.fs.dirname(path)) or vim.uv.cwd()
+  return vim.fs.root(dir, function(name, p)
+    return name == "plan.md" or name == "testcases.txt"
+      or (name == "tests" and vim.fn.isdirectory(p .. "/tests") == 1)
+  end)
+end
+
+local function is_lc(root) return exists(root .. "/testcases.txt") end
+
+local function files(root)
+  local function first(...)
+    for _, n in ipairs({ ... }) do
+      if exists(root .. "/" .. n) then return root .. "/" .. n end
+    end
+  end
+  return {
+    src = first("solution.cpp", "main.cpp"),
+    statement = first("question.md", "problem.md"),
+    plan = first("plan.md"),
+  }
+end
+
+local function meta(root)
+  local m = {}
+  local text = read(root .. "/plan.md") or ""
+  for line in (text:match("^%-%-%-\n(.-)\n%-%-%-") or ""):gmatch("[^\n]+") do
+    local k, v = line:match("^(%w+):%s*(.-)%s*$")
+    if k then m[k] = v:gsub('^"(.*)"$', "%1") end
+  end
+  if not m.id then m.id = (vim.fs.basename(root):match("^0*(%d+)")) end
+  m.url = m.url or (read(root .. "/problem.md") or ""):match("https?://%S+")
+  return m
+end
+
+---The plan nudge: which of approach / complexity are still blank.
+local function plan_gaps(root)
+  local text = read(root .. "/plan.md")
+  if not text then return {} end
+  local function section(h)
+    local body = text:match("\n## " .. h .. "[^\n]*\n(.-)\n## ") or ""
+    return (body:gsub("Time:", ""):gsub("Space:", ""):gsub("[%s%-`]", ""))
+  end
+  local gaps = {}
+  if section("Approach") == "" then table.insert(gaps, "approach") end
+  if section("Complexity") == "" then table.insert(gaps, "complexity") end
+  return gaps
+end
+
+local function nudge(root)
+  local gaps = plan_gaps(root)
+  if #gaps > 0 then
+    vim.notify(("cp: plan first: %s still empty in plan.md (2 to jump there)"):format(table.concat(gaps, " and ")),
+      vim.log.levels.WARN)
+  end
+end
+
+local function current()
+  local root = folder()
+  if not root then vim.notify("cp: not in a problem folder (p pick, f fetch, b browse)", vim.log.levels.WARN) end
+  return root
+end
+
+-- ── output split (LeetCode runs) ─────────────────────────────────────────────
+
+local out_buf
+
+local function output(cmd, done)
+  vim.cmd("silent! wall")
+  if not (out_buf and vim.api.nvim_buf_is_valid(out_buf)) then
+    out_buf = vim.api.nvim_create_buf(false, true)
+    vim.bo[out_buf].bufhidden = "hide"
+    vim.api.nvim_buf_set_name(out_buf, "cp://output")
+    vim.keymap.set("n", "q", "<cmd>close<cr>", { buffer = out_buf, nowait = true, silent = true })
+    vim.api.nvim_buf_call(out_buf, function()
+      vim.cmd([[syntax match CpPass /\v(Accepted|Passed|✔).*/]])
+      vim.cmd([[syntax match CpFail /\v(Wrong Answer|Wrong answer|Runtime Error|Compile Error|Failed|Error|✘).*/]])
+      vim.cmd([[syntax match CpTle /\v(Time Limit Exceeded|Memory Limit Exceeded).*/]])
+      vim.cmd([[syntax match CpDim /^\$ .*/]])
+    end)
+  end
+  local win = vim.fn.bufwinid(out_buf)
+  if win == -1 then
+    local cur = vim.api.nvim_get_current_win()
+    vim.cmd("botright " .. math.max(10, math.floor(vim.o.lines / 3)) .. "split")
+    vim.api.nvim_win_set_buf(0, out_buf)
+    win = vim.api.nvim_get_current_win()
+    vim.wo[win].number, vim.wo[win].relativenumber, vim.wo[win].signcolumn = false, false, "no"
+    vim.wo[win].wrap, vim.wo[win].winfixheight = true, true
+    vim.api.nvim_set_current_win(cur)
+  end
+  local head = { "$ " .. table.concat(cmd, " "), "" }
+  vim.api.nvim_buf_set_lines(out_buf, 0, -1, false, vim.list_extend(vim.deepcopy(head), { "running…" }))
+  local acc = ""
+  local function render(tail)
+    local lines = vim.split(acc:gsub("\27%[[%d;?]*[A-Za-z]", ""):gsub("\r", ""), "\n", { plain = true })
+    if tail then vim.list_extend(lines, tail) end
+    vim.api.nvim_buf_set_lines(out_buf, 0, -1, false, vim.list_extend(vim.deepcopy(head), lines))
+    local w = vim.fn.bufwinid(out_buf)
+    if w ~= -1 then vim.api.nvim_win_set_cursor(w, { vim.api.nvim_buf_line_count(out_buf), 0 }) end
+  end
+  local function on_data(_, data)
+    if data then vim.schedule(function() acc = acc .. data; render() end) end
+  end
+  vim.system(cmd, { text = true, env = { NO_COLOR = "1" }, stdout = on_data, stderr = on_data },
+    vim.schedule_wrap(function(r)
+      render({ "", ("[exit %d]"):format(r.code) })
+      if done then done(r.code, acc) end
+    end))
+end
+
+-- ── actions (CP mode keys) ───────────────────────────────────────────────────
+
+function M.run_tests()
+  local root = current()
+  if not root then return end
+  nudge(root)
+  if is_lc(root) then
+    output({ "lc", "test", meta(root).id, "-L" })
+  else
+    M.test({ root = root, src = files(root).src })
+  end
+end
+
+function M.run_remote()
+  local root = current()
+  if not root then return end
+  if not is_lc(root) then return vim.notify("cp: only LeetCode runs tests remotely; t runs the samples", vim.log.levels.INFO) end
+  output({ "lc", "test", meta(root).id, "-R" })
+end
+
+local function set_status(root, status)
+  vim.system({ "cp-index", "status", root, status }, { text = true }, vim.schedule_wrap(function(r)
+    local msg = vim.trim((r.stdout or "") .. (r.stderr or ""))
+    vim.notify(msg ~= "" and msg or ("cp-index exited %d"):format(r.code), r.code == 0 and vim.log.levels.INFO or vim.log.levels.ERROR)
+    for _, b in ipairs(vim.api.nvim_list_bufs()) do -- plan.md was rewritten on disk
+      if vim.api.nvim_buf_get_name(b) == root .. "/plan.md" and not vim.bo[b].modified then
+        vim.api.nvim_buf_call(b, function() vim.cmd("silent! checktime") end)
+      end
+    end
+  end))
+end
+
+function M.judge_submit()
+  local root = current()
+  if not root then return end
+  nudge(root)
+  if not is_lc(root) then
+    M.submit() -- copy + open the problem page; S once it's accepted
+    return vim.notify("cp: submit in the browser, then S marks it solved", vim.log.levels.INFO)
+  end
+  output({ "lc", "submit", meta(root).id }, function(_, text)
+    if text:find("Accepted") then
+      set_status(root, "solved")
+    elseif text:find("Wrong Answer") or text:find("Exceeded") or text:find("Error") then
+      if meta(root).status == "todo" then set_status(root, "attempted") end
+    end
+  end)
+end
+
+function M.mark_solved()
+  local root = current()
+  if root then set_status(root, "solved") end
+end
+
+function M.new_test()
+  local root = current()
+  if not root then return end
+  if not is_lc(root) then return M.add() end
+  -- leetgo's format: "input:\n<args, one per line>\noutput:\n<expected>" blocks
+  vim.cmd("botright split " .. vim.fn.fnameescape(root .. "/testcases.txt"))
+  local n = vim.api.nvim_buf_line_count(0)
+  local last = vim.api.nvim_buf_get_lines(0, n - 1, n, false)[1]
+  local block = { "input:", "", "output:", "" }
+  if last ~= "" then table.insert(block, 1, "") end
+  vim.api.nvim_buf_set_lines(0, n, n, false, block)
+  vim.api.nvim_win_set_cursor(0, { vim.api.nvim_buf_line_count(0) - 2, 0 })
+end
+
+local function focus(path)
+  if not path then return end
+  for _, w in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
+    if vim.api.nvim_buf_get_name(vim.api.nvim_win_get_buf(w)) == path then
+      return vim.api.nvim_set_current_win(w)
+    end
+  end
+  vim.cmd("edit " .. vim.fn.fnameescape(path))
+end
+
+function M.jump(which)
+  local root = current()
+  if root then focus(files(root)[which]) end
+end
+
+local function urlencode(s)
+  return (s:gsub("[^%w%-_%.~]", function(ch) return ("%%%02X"):format(ch:byte()) end))
+end
+
+function M.sketch()
+  local root = current()
+  if not root then return end
+  if not exists(VAULT_DIR .. "/" .. VAULT_LINK) then
+    return vim.notify(("cp: %s/%s missing (install.sh links it to %s)"):format(VAULT_DIR, VAULT_LINK, ROOT), vim.log.levels.WARN)
+  end
+  local rel = root:sub(#ROOT + 2)
+  vim.ui.open(("obsidian://open?vault=%s&file=%s"):format(VAULT, urlencode(VAULT_LINK .. "/" .. rel .. "/sketch.excalidraw.md")))
+end
+
+function M.web()
+  local root = current()
+  local url = root and meta(root).url
+  if not url then return root and vim.notify("cp: no URL in plan.md", vim.log.levels.WARN) end
+  if vim.fn.executable("qb") == 1 then vim.system({ "qb", url }, { detach = true }) else vim.ui.open(url) end
+end
+
+-- ── layout ───────────────────────────────────────────────────────────────────
+
+---Open a problem: statement on the left with plan.md under it, code on the right.
+function M.open(dir)
+  local root = folder(dir and vim.fn.fnamemodify(dir, ":p") or nil)
+  if not root then return vim.notify("cp: no problem folder at " .. (dir or vim.uv.cwd()), vim.log.levels.WARN) end
+  local f = files(root)
+  if not f.src then return vim.notify("cp: no solution.cpp / main.cpp in " .. root, vim.log.levels.WARN) end
+  -- reuse a tab that only shows this file or an empty buffer (nvim +CpOpen file), else a new tab
+  local wins = vim.api.nvim_tabpage_list_wins(0)
+  local name = vim.api.nvim_buf_get_name(0)
+  if #wins == 1 and (name == f.src or (name == "" and not vim.bo.modified)) then
+    vim.cmd("edit " .. vim.fn.fnameescape(f.src))
+  else
+    vim.cmd("tabnew " .. vim.fn.fnameescape(f.src))
+  end
+  vim.cmd("tcd " .. vim.fn.fnameescape(root))
+  local code = vim.api.nvim_get_current_win()
+  local plan_win
+  if f.statement then
+    vim.cmd("topleft vsplit " .. vim.fn.fnameescape(f.statement))
+    vim.cmd("vertical resize " .. math.floor(vim.o.columns * 0.42))
+    vim.wo.wrap, vim.wo.linebreak, vim.wo.number, vim.wo.relativenumber = true, true, false, false
+    if f.plan then
+      vim.cmd("belowright split " .. vim.fn.fnameescape(f.plan))
+      vim.wo.wrap, vim.wo.linebreak = true, true
+      plan_win = vim.api.nvim_get_current_win()
+    end
+  end
+  -- the nudge: an empty plan gets the cursor, a filled one hands it to the code
+  local gaps = plan_gaps(root)
+  vim.api.nvim_set_current_win((#gaps > 0 and plan_win) or code)
+  if #gaps > 0 and plan_win then
+    local l = vim.fn.search("^## Approach", "nw")
+    if l > 0 then vim.api.nvim_win_set_cursor(plan_win, { l + 1, 0 }) end
+  end
+  require("config.modes").enter("cp", { auto = true })
+  nudge(root)
+end
+
+-- ── pickers ──────────────────────────────────────────────────────────────────
+
+local DIFF_HL = { Easy = "CpPass", Medium = "CpTle", Hard = "CpFail" }
+local STATUS = { solved = { "✓", "CpPass" }, attempted = { "~", "CpTle" }, todo = { "·", "CpDim" } }
+
+local function index()
+  local r = vim.system({ "cp-index", "--json" }, { text = true }):wait()
+  local ok, list = pcall(vim.json.decode, r.stdout or "")
+  return ok and list or {}
+end
+
+---Run cp-fetch for `url` (no tmux), then open the folder here.
+function M.fetch(url)
+  if not url then
+    local clip = vim.fn.getreg("+")
+    vim.ui.input({ prompt = "Problem URL: ", default = clip:match("^https?://%S+$") and clip or "" }, function(u)
+      if u and u ~= "" then M.fetch(u) end
+    end)
+    return
+  end
+  vim.notify("cp: fetching " .. url)
+  vim.system({ "cp-fetch", url, "--no-open" }, { text = true }, vim.schedule_wrap(function(r)
+    local out = vim.trim((r.stdout or "") .. (r.stderr or ""))
+    local dir = out:match("→ (%S+)")
+    if r.code ~= 0 or not dir then return vim.notify(out, vim.log.levels.ERROR) end
+    M.open(vim.fn.expand(dir))
+  end))
+end
+
+---Every LeetCode problem (leetgo's cache), local status marked; Enter fetches and opens it.
+function M.pick()
+  local f = io.open(LC_CACHE, "r")
+  if not f then return vim.notify("cp: no leetgo cache yet; run `lc cache update`", vim.log.levels.WARN) end
+  local ok, qs = pcall(vim.json.decode, f:read("*a"))
+  f:close()
+  if not ok then return vim.notify("cp: can't read " .. LC_CACHE, vim.log.levels.ERROR) end
+  local mine = {}
+  for _, p in ipairs(index()) do
+    if p.judge == "leetcode" then mine[p.id] = p end
+  end
+  local items = {}
+  for _, q in ipairs(qs) do
+    local id = q.questionFrontendId
+    local p = mine[id]
+    table.insert(items, {
+      text = ("%s %s %s %s"):format(id, q.title, q.difficulty, q.titleSlug),
+      id = id, title = q.title, slug = q.titleSlug, diff = q.difficulty, paid = q.isPaidOnly,
+      status = p and p.status, dir = p and p.dir, n = tonumber(id) or 0,
+    })
+  end
+  table.sort(items, function(a, b) return a.n < b.n end)
+  Snacks.picker({
+    title = "LeetCode",
+    items = items,
+    layout = { preset = "select", preview = false },
+    format = function(item)
+      local s = STATUS[item.status] or { " ", "CpDim" }
+      return {
+        { s[1] .. " ", s[2] },
+        { ("%5s  "):format(item.id), "CpDim" },
+        { item.title .. (item.paid and " $" or "") .. "  ", item.paid and "CpDim" or nil },
+        { item.diff, DIFF_HL[item.diff] },
+      }
+    end,
+    confirm = function(picker, item)
+      picker:close()
+      if not item then return end
+      if item.dir then return M.open(item.dir) end
+      M.fetch("https://leetcode.com/problems/" .. item.slug .. "/")
+    end,
+  })
+end
+
+---My problems (every plan.md), newest first; preview is the plan.
+function M.browse()
+  local items = {}
+  for _, p in ipairs(index()) do
+    local tags = type(p.tags) == "table" and table.concat(p.tags, ", ") or ""
+    table.insert(items, {
+      text = ("%s %s %s %s %s %s"):format(p.status, p.judge, p.id, p.title, p.difficulty or "", tags),
+      file = p.dir .. "/plan.md", p = p, tags = tags,
+    })
+  end
+  if #items == 0 then return vim.notify("cp: no problems in " .. ROOT .. " yet (p / f)", vim.log.levels.INFO) end
+  Snacks.picker({
+    title = "Solutions",
+    items = items,
+    format = function(item)
+      local p, s = item.p, STATUS[item.p.status] or STATUS.todo
+      return {
+        { s[1] .. " ", s[2] },
+        { ("%-10s "):format(p.judge), "CpDim" },
+        { ("%s. %s  "):format(p.id, p.title) },
+        { (p.difficulty or "") .. "  ", DIFF_HL[p.difficulty] },
+        { item.tags, "CpDim" },
+      }
+    end,
+    confirm = function(picker, item)
+      picker:close()
+      if item then M.open(item.p.dir) end
+    end,
+  })
 end
 
 return M
